@@ -1,0 +1,24 @@
+import Foundation
+
+/// UserDefaults keys. Settings live in the app's own sandbox container.
+enum Prefs {
+    static let refreshInterval = "refreshInterval"
+    static let includeCacheReads = "includeCacheReads"
+    static let showTokens = "showTokensInBar"
+    static let showModel = "showModelInBar"
+    static let showProject = "showProjectInBar"
+    static let tokenBudget = "tokenBudget"
+    static let onboarded = "onboarded"
+
+    static func registerDefaults() {
+        UserDefaults.standard.register(defaults: [
+            refreshInterval: 20,
+            includeCacheReads: false,
+            showTokens: true,
+            showModel: true,
+            showProject: true,
+            tokenBudget: 0,
+            onboarded: false,
+        ])
+    }
+}
