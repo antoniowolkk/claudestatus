@@ -7,6 +7,7 @@ struct OnboardingView: View {
     @State private var step = 0
     @State private var login = LoginItem.isEnabled
     @State private var loginError: String?
+    @AppStorage(Prefs.darkMode) private var darkMode = false
 
     private let steps = ["Welcome", "Data", "Menu bar"]
 
@@ -122,6 +123,8 @@ struct OnboardingView: View {
                             .font(.system(size: 12)).foregroundStyle(Theme.sub)
                     }
                     Divider()
+                    Toggle("Dark mode", isOn: $darkMode)
+                        .onChange(of: darkMode) { AppAppearance.apply() }
                     Toggle("Open at login", isOn: $login)
                         .onChange(of: login) { _, on in
                             loginError = LoginItem.set(on)

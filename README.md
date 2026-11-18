@@ -10,7 +10,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/panel.png" width="340" alt="Claude Status panel">
+  <img src="docs/panel.png" width="320" alt="Claude Status panel, light">
+  &nbsp;
+  <img src="docs/panel-dark.png" width="320" alt="Claude Status panel, dark">
 </p>
 
 Lives in your menu bar as a single icon — no text, no wasted space. Hover for a quick summary, click for the panel.
@@ -22,7 +24,8 @@ Lives in your menu bar as a single icon — no text, no wasted space. Hover for 
 - **Project you're in now** — the folder, git branch, model (Opus 5.5, Sonnet 5.5, …) and surface (CLI, desktop app, VS Code, JetBrains, Agent SDK).
 - **Active projects** — every folder Claude worked in during the last 24 hours, newest first, with a live / active / idle dot, branch, worktree count and tokens. Claude Code worktrees and subfolders fold into their repo, so `AVIREO/.claude/worktrees/…` shows as **AVIREO**.
 - **Setup wizard** — a terminal installer and a first-run window that checks everything for you.
-- **Light and tiny** — native SwiftUI, about 1 MB, no Electron, no background services. Reads only new log lines after the first scan.
+- **Light or dark** — light by default, with a Dark mode switch in Settings. Your choice, not tied to the system setting.
+- **Tiny** — native SwiftUI, about 1 MB, no Electron, no background services. Reads only new log lines after the first scan.
 - **Private** — no network, no API keys, no telemetry. Runs in the App Sandbox.
 
 ## Requirements
@@ -49,7 +52,7 @@ The wizard walks through 7 steps:
 | 4. Location | `~/Applications` (no password) or `/Applications` |
 | 5. Build | Compiles from source, signs with App Sandbox + hardened runtime |
 | 6. Install | Replaces any running copy |
-| 7. Launch | Opens the app; a setup window checks data access and open at login |
+| 7. Launch | Opens the app; a setup window checks data access, dark mode and open at login |
 
 Non-interactive: `./install.sh --yes` (installs to `~/Applications` and opens the app).
 
@@ -74,7 +77,7 @@ Click the **✦** icon in the menu bar to open the panel (hover it for a one-lin
 
 | Tab | Options |
 | --- | --- |
-| General | Counting cache reads, a 5-hour token budget, refresh rate, open at login, rerun setup |
+| General | Dark mode, counting cache reads, a 5-hour token budget, refresh rate, open at login, rerun setup |
 | Privacy | What the app reads and never does, and a shortcut to the logs folder |
 
 ### Active projects

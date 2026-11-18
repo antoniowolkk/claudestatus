@@ -1,21 +1,33 @@
 import SwiftUI
+import AppKit
 
-/// Light, clean, slightly sci-fi palette. The app always renders in light mode.
+/// Clean, slightly sci-fi palette. Light by default; dark when the user turns on Dark mode.
+/// Every color adapts to the appearance of the view it's drawn in.
 enum Theme {
-    static let bg = Color(red: 0.975, green: 0.98, blue: 0.99)
-    static let card = Color.white
-    static let ink = Color(red: 0.08, green: 0.10, blue: 0.14)
-    static let sub = Color(red: 0.38, green: 0.42, blue: 0.50)
-    static let faint = Color(red: 0.60, green: 0.64, blue: 0.70)
-    static let hair = Color(red: 0.08, green: 0.12, blue: 0.22).opacity(0.09)
-    static let grid = Color(red: 0.10, green: 0.40, blue: 0.80).opacity(0.045)
+    static let bg = adaptive(light: (0.975, 0.98, 0.99), dark: (0.045, 0.06, 0.09))
+    static let card = adaptive(light: (1, 1, 1), dark: (0.075, 0.095, 0.14))
+    static let ink = adaptive(light: (0.08, 0.10, 0.14), dark: (0.90, 0.93, 0.97))
+    static let sub = adaptive(light: (0.38, 0.42, 0.50), dark: (0.60, 0.65, 0.74))
+    static let faint = adaptive(light: (0.60, 0.64, 0.70), dark: (0.40, 0.45, 0.54))
+    static let hair = adaptive(light: (0.08, 0.12, 0.22), dark: (0.55, 0.70, 1.0), lightAlpha: 0.09, darkAlpha: 0.12)
+    static let grid = adaptive(light: (0.10, 0.40, 0.80), dark: (0.20, 0.60, 1.0), lightAlpha: 0.045, darkAlpha: 0.06)
 
-    static let accent = Color(red: 0.05, green: 0.45, blue: 0.95)
+    static let accent = adaptive(light: (0.05, 0.45, 0.95), dark: (0.25, 0.60, 1.0))
     static let cyan = Color(red: 0.00, green: 0.76, blue: 0.86)
-    static let violet = Color(red: 0.45, green: 0.36, blue: 0.95)
+    static let violet = adaptive(light: (0.45, 0.36, 0.95), dark: (0.60, 0.52, 1.0))
     static let amber = Color(red: 0.88, green: 0.56, blue: 0.05)
-    static let danger = Color(red: 0.90, green: 0.22, blue: 0.30)
-    static let live = Color(red: 0.10, green: 0.75, blue: 0.45)
+    static let danger = adaptive(light: (0.90, 0.22, 0.30), dark: (1.0, 0.40, 0.45))
+    static let live = adaptive(light: (0.10, 0.75, 0.45), dark: (0.20, 0.85, 0.55))
+
+    private typealias RGB = (Double, Double, Double)
+
+    private static func adaptive(light: RGB, dark: RGB, lightAlpha: Double = 1, darkAlpha: Double = 1) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            let c = isDark ? dark : light
+            return NSColor(srgbRed: c.0, green: c.1, blue: c.2, alpha: isDark ? darkAlpha : lightAlpha)
+        })
+    }
 
     static let ring = AngularGradient(
         colors: [cyan, accent, violet, cyan],

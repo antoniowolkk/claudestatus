@@ -12,7 +12,7 @@ struct PanelView: View {
         }
         .frame(width: 340)
         .background(GridBackground())
-        .environment(\.colorScheme, .light)
+        .appAppearance()
     }
 
     @ViewBuilder

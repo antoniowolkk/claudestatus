@@ -16,8 +16,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         Prefs.registerDefaults()
         NSApp.setActivationPolicy(.accessory)
-        // Always light, whatever the system appearance.
-        NSApp.appearance = NSAppearance(named: .aqua)
+        // Light unless the user turned on Dark mode (independent of the system setting).
+        NSApp.appearance = AppAppearance.nsAppearance
 
         // Developer helper: `ClaudeStatus --snapshot out.png` renders the panel and exits.
         let args = CommandLine.arguments
@@ -49,7 +49,7 @@ enum Snapshotter {
     static func render(to path: String) {
         let view = PanelView()
             .environmentObject(UsageStore.shared)
-            .environment(\.colorScheme, .light)
+            .appAppearance()
         let renderer = ImageRenderer(content: view)
         renderer.scale = 2
         guard let image = renderer.nsImage,
@@ -89,7 +89,7 @@ final class WindowManager {
         }
         let root = content()
             .environmentObject(UsageStore.shared)
-            .environment(\.colorScheme, .light)
+            .appAppearance()
         let view = NSHostingView(rootView: root)
         view.sizingOptions = [] // fixed-size windows; no automatic window resizing
         let w = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
@@ -99,7 +99,7 @@ final class WindowManager {
         w.titlebarAppearsTransparent = true
         w.titleVisibility = .hidden
         w.isMovableByWindowBackground = true
-        w.appearance = NSAppearance(named: .aqua)
+        w.appearance = AppAppearance.nsAppearance
         w.isReleasedWhenClosed = false
         w.setContentSize(size)
         w.center()

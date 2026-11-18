@@ -54,11 +54,18 @@ private struct GeneralSettings: View {
     @AppStorage(Prefs.includeCacheReads) private var includeCacheReads = false
     @AppStorage(Prefs.refreshInterval) private var refresh = 20
     @AppStorage(Prefs.tokenBudget) private var budget = 0
+    @AppStorage(Prefs.darkMode) private var darkMode = false
     @State private var login = LoginItem.isEnabled
     @State private var loginError: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            Section(title: "Appearance") {
+                Toggle("Dark mode", isOn: $darkMode)
+                    .onChange(of: darkMode) { AppAppearance.apply() }
+                Text("Off keeps the app light, whatever your Mac is set to.")
+                    .font(.system(size: 11)).foregroundStyle(Theme.sub)
+            }
             Section(title: "Usage") {
                 Toggle("Count cache reads as tokens", isOn: $includeCacheReads)
                 Text("Cache reads are cheap and can be very large. Off shows input, output and cache writes.")

@@ -5,6 +5,7 @@ enum Prefs {
     static let refreshInterval = "refreshInterval"
     static let includeCacheReads = "includeCacheReads"
     static let tokenBudget = "tokenBudget"
+    static let darkMode = "darkMode"
     static let onboarded = "onboarded"
 
     static func registerDefaults() {
@@ -12,6 +13,7 @@ enum Prefs {
             refreshInterval: 20,
             includeCacheReads: false,
             tokenBudget: 0,
+            darkMode: false,
             onboarded: false,
         ])
     }

@@ -14,7 +14,7 @@ final class StatusPanel: NSPanel {
         animationBehavior = .none
         hidesOnDeactivate = false
         isMovable = false
-        appearance = NSAppearance(named: .aqua)
+        appearance = AppAppearance.nsAppearance
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
     }
 
@@ -95,7 +95,7 @@ final class StatusController: NSObject {
                 .environmentObject(UsageStore.shared)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.hair, lineWidth: 0.5))
-                .environment(\.colorScheme, .light)
+                .appAppearance()
                 .transaction { $0.animation = nil }
         )
         measurer = NSHostingController(rootView: root)
