@@ -68,13 +68,13 @@ final class WindowManager {
     private var windows: [String: NSWindow] = [:]
 
     func showOnboarding() {
-        show(id: "onboarding", title: "Welcome to Claude Status", size: CGSize(width: 560, height: 440)) {
+        show(id: "onboarding", title: L("Welcome to Claude Status"), size: CGSize(width: 560, height: 440)) {
             AnyView(OnboardingView())
         }
     }
 
     func showSettings() {
-        show(id: "settings", title: "Claude Status Settings", size: CGSize(width: 520, height: 460)) {
+        show(id: "settings", title: L("Claude Status Settings"), size: CGSize(width: 520, height: 460)) {
             AnyView(SettingsView())
         }
     }

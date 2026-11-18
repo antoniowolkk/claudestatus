@@ -9,7 +9,7 @@ struct OnboardingView: View {
     @State private var loginError: String?
     @AppStorage(Prefs.darkMode) private var darkMode = false
 
-    private let steps = ["Welcome", "Data", "Menu bar"]
+    private var steps: [String] { [L("Welcome"), L("Data"), L("Menu bar")] }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -30,10 +30,10 @@ struct OnboardingView: View {
 
             HStack {
                 if step > 0 {
-                    Button("Back") { step -= 1 }
+                    Button(L("Back")) { step -= 1 }
                 }
                 Spacer()
-                Button(step == steps.count - 1 ? "Finish" : "Continue") {
+                Button(step == steps.count - 1 ? L("Finish") : L("Continue")) {
                     if step == steps.count - 1 { finish() } else { step += 1 }
                 }
                 .keyboardShortcut(.defaultAction)
@@ -75,10 +75,13 @@ struct OnboardingView: View {
 
     private var welcome: some View {
         VStack(alignment: .leading, spacing: 12) {
-            title("Claude Status", "A light menu bar readout for Claude Code: token usage in your 5-hour window, the model you're on, and which project folders Claude is working in.")
-            feature("gauge.with.needle", "Live token usage", "Session, today, 7 days and the current 5-hour window.")
-            feature("folder", "Projects at a glance", "The folder you're in now, plus every project active in the last 24 hours.")
-            feature("lock.shield", "Private by design", "Reads local logs only. No network, no keys, no telemetry.")
+            title("Claude Status", L("A light menu bar readout for Claude Code: token usage in your 5-hour window, the model you're on, and which project folders Claude is working in."))
+            feature("gauge.with.needle", L("Live token usage"), L("Session, today, 7 days and the current 5-hour window."))
+            feature("folder", L("Projects at a glance"), L("The folder you're in now, plus every project active in the last 24 hours."))
+            feature("lock.shield", L("Private by design"), L("Reads local logs only. No network, no keys, no telemetry."))
+            LanguagePicker()
+                .frame(maxWidth: 280)
+                .padding(.top, 6)
         }
     }
 
@@ -86,46 +89,46 @@ struct OnboardingView: View {
         let snap = store.snapshot
         let ok = snap.error == nil && snap.filesScanned > 0
         return VStack(alignment: .leading, spacing: 12) {
-            title("Check data access", "Claude Status reads Claude Code's session logs, read-only.")
+            title(L("Check data access"), L("Claude Status reads Claude Code's session logs, read-only."))
             HUDCard(padding: 14) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
                         Image(systemName: ok ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
                             .foregroundStyle(ok ? Theme.live : Theme.amber)
-                        Text(ok ? "Logs found" : "No logs yet").font(.system(size: 13, weight: .semibold))
+                        Text(ok ? L("Logs found") : L("No logs yet")).font(.system(size: 13, weight: .semibold))
                     }
                     Text(LogScanner.projectsDir).font(Theme.mono(11)).foregroundStyle(Theme.sub).textSelection(.enabled)
                     if ok {
-                        Text("\(snap.filesScanned) recent session files · \(Fmt.compact(snap.week.tokens(includeCacheReads: false))) tokens in the last 7 days")
+                        Text(L("%d recent session files · %@ tokens in the last 7 days", snap.filesScanned, Fmt.compact(snap.week.tokens(includeCacheReads: false))))
                             .font(Theme.mono(11)).foregroundStyle(Theme.ink)
                     } else {
-                        Text(snap.error?.message ?? "Run a Claude Code session, then check again.")
+                        Text(snap.error?.message ?? L("Run a Claude Code session, then check again."))
                             .font(.system(size: 12)).foregroundStyle(Theme.sub)
                     }
                 }
             }
             Button {
                 Task { await store.refresh() }
-            } label: { Label("Check again", systemImage: "arrow.clockwise") }
+            } label: { Label(L("Check again"), systemImage: "arrow.clockwise") }
         }
     }
 
     private var menuBar: some View {
         VStack(alignment: .leading, spacing: 12) {
-            title("Menu bar", "Claude Status lives in your menu bar as a single icon. Click it for the full panel; hover it for a quick summary.")
+            title(L("Menu bar"), L("Claude Status lives in your menu bar as a single icon. Click it for the full panel; hover it for a quick summary."))
             HUDCard(padding: 14) {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 10) {
                         Image(nsImage: StatusController.icon)
                             .padding(.horizontal, 10).padding(.vertical, 5)
                             .background(RoundedRectangle(cornerRadius: 6).fill(Theme.hair))
-                        Text("Look for this icon at the top right of your screen.")
+                        Text(L("Look for this icon at the top right of your screen."))
                             .font(.system(size: 12)).foregroundStyle(Theme.sub)
                     }
                     Divider()
-                    Toggle("Dark mode", isOn: $darkMode)
+                    Toggle(L("Dark mode"), isOn: $darkMode)
                         .onChange(of: darkMode) { AppAppearance.apply() }
-                    Toggle("Open at login", isOn: $login)
+                    Toggle(L("Open at login"), isOn: $login)
                         .onChange(of: login) { _, on in
                             loginError = LoginItem.set(on)
                             login = LoginItem.isEnabled

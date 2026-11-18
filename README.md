@@ -24,6 +24,7 @@ Lives in your menu bar as a single icon — no text, no wasted space. Hover for 
 - **Project you're in now** — the folder, git branch, model (Opus 5.5, Sonnet 5.5, …) and surface (CLI, desktop app, VS Code, JetBrains, Agent SDK).
 - **Active projects** — every folder Claude worked in during the last 24 hours, newest first, with a live / active / idle dot, branch, worktree count and tokens. Claude Code worktrees and subfolders fold into their repo, so `AVIREO/.claude/worktrees/…` shows as **AVIREO**.
 - **Setup wizard** — a terminal installer and a first-run window that checks everything for you.
+- **English, Deutsch, 日本語** — pick a language in Settings, or let it follow your Mac. Switches live.
 - **Light or dark** — light by default, with a Dark mode switch in Settings. Your choice, not tied to the system setting.
 - **Tiny** — native SwiftUI, about 1 MB, no Electron, no background services. Reads only new log lines after the first scan.
 - **Private** — no network, no API keys, no telemetry. Runs in the App Sandbox.
@@ -77,7 +78,7 @@ Click the **✦** icon in the menu bar to open the panel (hover it for a one-lin
 
 | Tab | Options |
 | --- | --- |
-| General | Dark mode, counting cache reads, a 5-hour token budget, refresh rate, open at login, rerun setup |
+| General | Dark mode, language, counting cache reads, a 5-hour token budget, refresh rate, open at login, rerun setup |
 | Privacy | What the app reads and never does, and a shortcut to the logs folder |
 
 ### Active projects
@@ -148,6 +149,8 @@ Sources/ClaudeStatus/
   SettingsView.swift      settings window
   OnboardingView.swift    first-run setup
   Theme.swift             colors, ring gauge, HUD cards
+  Strings.swift           English, German and Japanese text
+  Appearance.swift        dark mode and live language switching
 Resources/                Info.plist, entitlements, icon
 scripts/                  build-app.sh, make-icon.swift
 install.sh / uninstall.sh

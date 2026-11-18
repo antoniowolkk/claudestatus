@@ -29,18 +29,18 @@ enum Fmt {
     static func duration(_ seconds: TimeInterval) -> String {
         let s = max(0, Int(seconds))
         let h = s / 3600, m = (s % 3600) / 60
-        if h > 0 { return "\(h)h \(m)m" }
-        if m > 0 { return "\(m)m" }
-        return "<1m"
+        if h > 0 { return L("%dh %dm", h, m) }
+        if m > 0 { return L("%dm", m) }
+        return L("<1m")
     }
 
     static func ago(_ date: Date, now: Date = Date()) -> String {
         let s = Int(now.timeIntervalSince(date))
-        if s < 10 { return "just now" }
-        if s < 60 { return "\(s)s ago" }
-        if s < 3600 { return "\(s / 60)m ago" }
-        if s < 86_400 { return "\(s / 3600)h ago" }
-        return "\(s / 86_400)d ago"
+        if s < 10 { return L("just now") }
+        if s < 60 { return L("%ds ago", s) }
+        if s < 3600 { return L("%dm ago", s / 60) }
+        if s < 86_400 { return L("%dh ago", s / 3600) }
+        return L("%dd ago", s / 86_400)
     }
 
     static func percent(_ v: Double?) -> String {
@@ -78,22 +78,23 @@ enum Surface {
         switch entrypoint {
         case "": return "—"
         case "cli": return "CLI"
-        case "claude-desktop": return "Desktop app"
+        case "claude-desktop": return L("Desktop app")
         case "claude-vscode": return "VS Code"
         case let s where s.contains("jetbrains"): return "JetBrains"
         case let s where s.hasPrefix("sdk"): return "Agent SDK"
-        case let s where s.contains("web") || s.contains("remote") || s.contains("cloud"): return "Cloud"
+        case let s where s.contains("web") || s.contains("remote") || s.contains("cloud"): return L("Cloud")
         default: return entrypoint
         }
     }
 
     static func icon(_ entrypoint: String) -> String {
-        switch name(entrypoint) {
-        case "CLI": return "terminal"
-        case "Desktop app": return "macwindow"
-        case "VS Code", "JetBrains": return "chevron.left.forwardslash.chevron.right"
-        case "Agent SDK": return "shippingbox"
-        case "Cloud": return "cloud"
+        switch entrypoint {
+        case "cli": return "terminal"
+        case "claude-desktop": return "macwindow"
+        case "claude-vscode": return "chevron.left.forwardslash.chevron.right"
+        case let s where s.contains("jetbrains"): return "chevron.left.forwardslash.chevron.right"
+        case let s where s.hasPrefix("sdk"): return "shippingbox"
+        case let s where s.contains("web") || s.contains("remote") || s.contains("cloud"): return "cloud"
         default: return "questionmark.circle"
         }
     }

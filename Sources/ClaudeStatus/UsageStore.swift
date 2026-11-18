@@ -77,7 +77,7 @@ final class UsageStore: ObservableObject {
     var menuBarText: String {
         var parts = ["Claude"]
         let t = snapshot.block.map { $0.isActive ? $0.totals.tokens(includeCacheReads: includeCacheReads) : 0 } ?? 0
-        parts.append("\(Fmt.compact(t)) tokens")
+        parts.append(L("%@ tokens", Fmt.compact(t)))
         if let m = snapshot.context?.model { parts.append(ModelName.pretty(m)) }
         if let p = snapshot.context?.project { parts.append(p) }
         return parts.joined(separator: " · ")

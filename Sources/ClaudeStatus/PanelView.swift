@@ -21,9 +21,9 @@ struct PanelView: View {
         VStack(alignment: .leading, spacing: 12) {
             header(snap, now: now)
             if let err = snap.error {
-                messageCard(icon: "exclamationmark.triangle", title: "Logs not found", body: err.message + " Run a Claude Code session, then refresh.")
+                messageCard(icon: "exclamationmark.triangle", title: L("Logs not found"), body: err.message + " Run a Claude Code session, then refresh.")
             } else if snap.context == nil {
-                messageCard(icon: "hourglass", title: snap.updatedAt == nil ? "Scanning logs" : "No recent activity", body: "Usage shows up here after your next Claude Code message.")
+                messageCard(icon: "hourglass", title: snap.updatedAt == nil ? L("Scanning logs") : L("No recent activity"), body: L("Usage shows up here after your next Claude Code message."))
             } else {
                 hero(snap, now: now)
                 stats(snap)
@@ -51,7 +51,7 @@ struct PanelView: View {
             Spacer()
             HStack(spacing: 5) {
                 Circle().fill(live ? Theme.live : Theme.faint).frame(width: 6, height: 6)
-                Text(live ? "LIVE" : (last.map { "IDLE · \(Fmt.ago($0, now: now))" } ?? "IDLE"))
+                Text(live ? L("LIVE") : (last.map { L("IDLE · %@", Fmt.ago($0, now: now)) } ?? L("IDLE")))
                     .font(Theme.label(9))
                     .tracking(1.2)
                     .foregroundStyle(live ? Theme.live : Theme.faint)
@@ -71,15 +71,15 @@ struct PanelView: View {
         if budget > 0 {
             progress = Double(tokens) / Double(budget)
             ringTop = Fmt.percent(progress)
-            ringBottom = "BUDGET"
+            ringBottom = L("BUDGET")
         } else if let b = block {
             progress = now.timeIntervalSince(b.start) / SnapshotBuilder.blockLength
             ringTop = Fmt.duration(remaining)
-            ringBottom = "LEFT"
+            ringBottom = L("LEFT")
         } else {
             progress = 0
             ringTop = "—"
-            ringBottom = "IDLE"
+            ringBottom = L("IDLE")
         }
 
         return HUDCard(padding: 14) {
@@ -95,23 +95,23 @@ struct PanelView: View {
                 .frame(width: 92, height: 92)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("5-HOUR WINDOW")
+                    Text(L("5-HOUR WINDOW"))
                         .font(Theme.label(9)).tracking(1.6).foregroundStyle(Theme.accent)
                     Text(Fmt.full(tokens))
                         .font(Theme.mono(26, .semibold))
                         .foregroundStyle(Theme.ink)
                         .minimumScaleFactor(0.6)
                         .lineLimit(1)
-                    Text(includeCacheReads ? "tokens incl. cache reads" : "tokens")
+                    Text(includeCacheReads ? L("tokens incl. cache reads") : L("tokens"))
                         .font(.system(size: 11))
                         .foregroundStyle(Theme.sub)
                     if let b = block {
-                        Text("≈\(Fmt.cost(b.totals.cost)) · resets \(b.end.formatted(date: .omitted, time: .shortened))")
+                        Text("≈\(Fmt.cost(b.totals.cost)) · " + L("resets %@", b.end.formatted(date: .omitted, time: .shortened)))
                             .font(Theme.mono(10))
                             .foregroundStyle(Theme.faint)
                             .padding(.top, 2)
                     } else {
-                        Text("Starts with your next message")
+                        Text(L("Starts with your next message"))
                             .font(Theme.mono(10))
                             .foregroundStyle(Theme.faint)
                             .padding(.top, 2)
@@ -126,10 +126,10 @@ struct PanelView: View {
 
     private func stats(_ snap: UsageSnapshot) -> some View {
         HStack(spacing: 8) {
-            tile("SESSION", Fmt.compact(snap.session.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.session.cost))
-            tile("TODAY", Fmt.compact(snap.today.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.today.cost))
-            tile("7 DAYS", Fmt.compact(snap.week.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.week.cost))
-            tile("CACHE", Fmt.percent(snap.today.cacheHitRate), "hit today")
+            tile(L("SESSION"), Fmt.compact(snap.session.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.session.cost))
+            tile(L("TODAY"), Fmt.compact(snap.today.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.today.cost))
+            tile(L("7 DAYS"), Fmt.compact(snap.week.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.week.cost))
+            tile(L("CACHE"), Fmt.percent(snap.today.cacheHitRate), L("hit today"))
         }
     }
 
@@ -151,10 +151,10 @@ struct PanelView: View {
         let c = snap.context!
         return HUDCard {
             VStack(spacing: 8) {
-                row("folder", "PROJECT") {
+                row("folder", L("PROJECT")) {
                     HStack(spacing: 6) {
                         if c.worktree != nil {
-                            Text("WORKTREE")
+                            Text(L("WORKTREE"))
                                 .font(Theme.label(8)).tracking(1)
                                 .padding(.horizontal, 5).padding(.vertical, 1)
                                 .foregroundStyle(Theme.violet)
@@ -164,15 +164,15 @@ struct PanelView: View {
                     }
                 }
                 .help(c.cwd)
-                row("arrow.triangle.branch", "BRANCH") {
+                row("arrow.triangle.branch", L("BRANCH")) {
                     Text(Self.branchText(c.branch))
                         .font(Theme.mono(12)).foregroundStyle(Theme.ink).lineLimit(1).truncationMode(.middle)
                 }
-                row("cpu", "MODEL") {
+                row("cpu", L("MODEL")) {
                     Text(ModelName.pretty(c.model)).font(Theme.mono(12)).foregroundStyle(Theme.ink)
                 }
                 .help(c.model)
-                row(Surface.icon(c.entrypoint), "SURFACE") {
+                row(Surface.icon(c.entrypoint), L("SURFACE")) {
                     Text(Surface.name(c.entrypoint)).font(Theme.mono(12)).foregroundStyle(Theme.ink)
                 }
             }
@@ -189,9 +189,9 @@ struct PanelView: View {
         let current = snap.context.map { ProjectPath.root($0.cwd) }
         return VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("ACTIVE PROJECTS").font(Theme.label(9)).tracking(1.6).foregroundStyle(Theme.accent)
+                Text(L("ACTIVE PROJECTS")).font(Theme.label(9)).tracking(1.6).foregroundStyle(Theme.accent)
                 Spacer()
-                Text("LAST 24H").font(Theme.label(8)).tracking(1.2).foregroundStyle(Theme.faint)
+                Text(L("LAST 24H")).font(Theme.label(8)).tracking(1.2).foregroundStyle(Theme.faint)
             }
             .padding(.horizontal, 2)
             HUDCard(padding: 6) {
@@ -201,7 +201,7 @@ struct PanelView: View {
                         projectRow(p, isCurrent: current.map { $0 == p.root || $0.hasPrefix(p.root + "/") } ?? false, now: now)
                     }
                     if hidden > 0 {
-                        Text("+\(hidden) more")
+                        Text(L("+%d more", hidden))
                             .font(Theme.mono(10)).foregroundStyle(Theme.faint)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 6).padding(.top, 6).padding(.bottom, 2)
@@ -213,9 +213,9 @@ struct PanelView: View {
 
     private func projectRow(_ p: ProjectActivity, isCurrent: Bool, now: Date) -> some View {
         let age = now.timeIntervalSince(p.lastActivity)
-        let state: (String, Color) = age < 120 ? ("LIVE", Theme.live) : age < 1800 ? ("ACTIVE", Theme.accent) : (Fmt.ago(p.lastActivity, now: now), Theme.faint)
+        let state: (String, Color) = age < 120 ? (L("LIVE"), Theme.live) : age < 1800 ? (L("ACTIVE"), Theme.accent) : (Fmt.ago(p.lastActivity, now: now), Theme.faint)
         var detail = Self.branchText(p.branch)
-        if p.worktrees > 0 { detail += " · \(p.worktrees) worktree\(p.worktrees == 1 ? "" : "s")" }
+        if p.worktrees > 0 { detail += " · " + L(p.worktrees == 1 ? "%d worktree" : "%d worktrees", p.worktrees) }
 
         return HStack(spacing: 9) {
             Circle().fill(state.1).frame(width: 6, height: 6)
@@ -240,7 +240,7 @@ struct PanelView: View {
     }
 
     private static func branchText(_ branch: String) -> String {
-        branch.isEmpty || branch == "HEAD" ? "no branch" : branch
+        branch.isEmpty || branch == "HEAD" ? L("no branch") : branch
     }
 
     private func row<V: View>(_ icon: String, _ label: String, @ViewBuilder value: () -> V) -> some View {
@@ -267,7 +267,7 @@ struct PanelView: View {
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.sub)
                     .fixedSize(horizontal: false, vertical: true)
-                Button("Open setup") { WindowManager.shared.showOnboarding() }
+                Button(L("Open setup")) { WindowManager.shared.showOnboarding() }
                     .buttonStyle(.link)
                     .font(.system(size: 12))
             }
@@ -276,14 +276,14 @@ struct PanelView: View {
 
     private func footer(_ snap: UsageSnapshot, now: Date) -> some View {
         HStack(spacing: 4) {
-            Text(snap.updatedAt.map { "SYNC \(Fmt.ago($0, now: now).uppercased())" } ?? "SYNCING")
+            Text(snap.updatedAt.map { L("SYNC %@", Fmt.ago($0, now: now).uppercased()) } ?? L("SYNCING"))
                 .font(Theme.label(9)).tracking(1.2).foregroundStyle(Theme.faint)
             Spacer()
-            IconButton(icon: "arrow.clockwise", help: "Refresh") {
+            IconButton(icon: "arrow.clockwise", help: L("Refresh")) {
                 Task { await store.refresh() }
             }
-            IconButton(icon: "gearshape", help: "Settings") { WindowManager.shared.showSettings() }
-            IconButton(icon: "power", help: "Quit Claude Status") { NSApp.terminate(nil) }
+            IconButton(icon: "gearshape", help: L("Settings")) { WindowManager.shared.showSettings() }
+            IconButton(icon: "power", help: L("Quit Claude Status")) { NSApp.terminate(nil) }
         }
     }
 }

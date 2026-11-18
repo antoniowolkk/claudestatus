@@ -107,8 +107,8 @@ enum ScanError: Sendable, Equatable {
 
     var message: String {
         switch self {
-        case .notFound(let p): return "No Claude Code logs found at \(p)."
-        case .unreadable(let p): return "Can't read \(p)."
+        case .notFound(let p): return L("No Claude Code logs found at %@.", p)
+        case .unreadable(let p): return L("Can't read %@.", p)
         }
     }
 }

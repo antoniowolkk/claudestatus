@@ -8,15 +8,15 @@ struct SettingsView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("SETTINGS").font(Theme.label(11)).tracking(2.4).foregroundStyle(Theme.sub)
+                Text(L("SETTINGS")).font(Theme.label(11)).tracking(2.4).foregroundStyle(Theme.sub)
                 Spacer()
                 Picker("", selection: $tab) {
-                    Text("General").tag(0)
-                    Text("Privacy").tag(1)
+                    Text(L("General")).tag(0)
+                    Text(L("Privacy")).tag(1)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 200)
+                .frame(width: 240)
             }
             .padding(.horizontal, 20)
             .padding(.top, 34)
@@ -60,35 +60,37 @@ private struct GeneralSettings: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Section(title: "Appearance") {
-                Toggle("Dark mode", isOn: $darkMode)
+            Section(title: L("Appearance")) {
+                Toggle(L("Dark mode"), isOn: $darkMode)
                     .onChange(of: darkMode) { AppAppearance.apply() }
-                Text("Off keeps the app light, whatever your Mac is set to.")
+                Text(L("Off keeps the app light, whatever your Mac is set to."))
                     .font(.system(size: 11)).foregroundStyle(Theme.sub)
+                LanguagePicker()
+                    .frame(maxWidth: 280)
             }
-            Section(title: "Usage") {
-                Toggle("Count cache reads as tokens", isOn: $includeCacheReads)
-                Text("Cache reads are cheap and can be very large. Off shows input, output and cache writes.")
+            Section(title: L("Usage")) {
+                Toggle(L("Count cache reads as tokens"), isOn: $includeCacheReads)
+                Text(L("Cache reads are cheap and can be very large. Off shows input, output and cache writes."))
                     .font(.system(size: 11)).foregroundStyle(Theme.sub)
                 HStack {
-                    Text("5-hour token budget")
+                    Text(L("5-hour token budget"))
                     Spacer()
                     TextField("0", value: $budget, format: .number)
                         .frame(width: 110)
                         .multilineTextAlignment(.trailing)
                 }
-                Text("Set a budget to show the ring as % used. 0 shows time left instead.")
+                Text(L("Set a budget to show the ring as % used. 0 shows time left instead."))
                     .font(.system(size: 11)).foregroundStyle(Theme.sub)
-                Picker("Refresh every", selection: $refresh) {
-                    Text("10 seconds").tag(10)
-                    Text("20 seconds").tag(20)
-                    Text("1 minute").tag(60)
-                    Text("5 minutes").tag(300)
+                Picker(L("Refresh every"), selection: $refresh) {
+                    Text(L("10 seconds")).tag(10)
+                    Text(L("20 seconds")).tag(20)
+                    Text(L("1 minute")).tag(60)
+                    Text(L("5 minutes")).tag(300)
                 }
                 .onChange(of: refresh) { store.start() }
             }
-            Section(title: "Startup") {
-                Toggle("Open at login", isOn: $login)
+            Section(title: L("Startup")) {
+                Toggle(L("Open at login"), isOn: $login)
                     .onChange(of: login) { _, on in
                         loginError = LoginItem.set(on)
                         login = LoginItem.isEnabled
@@ -96,7 +98,7 @@ private struct GeneralSettings: View {
                 if let loginError {
                     Text(loginError).font(.system(size: 11)).foregroundStyle(Theme.danger)
                 }
-                Button("Run setup again") { WindowManager.shared.showOnboarding() }
+                Button(L("Run setup again")) { WindowManager.shared.showOnboarding() }
             }
         }
         .toggleStyle(.switch)
@@ -108,21 +110,21 @@ private struct GeneralSettings: View {
 private struct PrivacySettings: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Section(title: "What this app reads") {
-                bullet("doc.text.magnifyingglass", "Claude Code logs in ~/.claude/projects, read-only. Only token counts, model, project folder, branch and surface are kept, in memory.")
+            Section(title: L("What this app reads")) {
+                bullet("doc.text.magnifyingglass", L("Claude Code logs in ~/.claude/projects, read-only. Only token counts, model, project folder, branch and surface are kept, in memory."))
             }
-            Section(title: "What it never does") {
-                bullet("wifi.slash", "No network access. The App Sandbox blocks it.")
-                bullet("key", "No API keys, passwords or accounts.")
-                bullet("eye.slash", "No telemetry, analytics or crash reporting.")
-                bullet("pencil.slash", "Never writes to your Claude files.")
+            Section(title: L("What it never does")) {
+                bullet("wifi.slash", L("No network access. The App Sandbox blocks it."))
+                bullet("key", L("No API keys, passwords or accounts."))
+                bullet("eye.slash", L("No telemetry, analytics or crash reporting."))
+                bullet("pencil.slash", L("Never writes to your Claude files."))
             }
             HStack {
-                Button("Show logs folder") {
+                Button(L("Show logs folder")) {
                     NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: LogScanner.projectsDir)
                 }
                 Spacer()
-                Text("Cost is an estimate from public API prices.")
+                Text(L("Cost is an estimate from public API prices."))
                     .font(.system(size: 10)).foregroundStyle(Theme.faint)
             }
         }

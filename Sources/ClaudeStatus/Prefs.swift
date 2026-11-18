@@ -6,6 +6,7 @@ enum Prefs {
     static let includeCacheReads = "includeCacheReads"
     static let tokenBudget = "tokenBudget"
     static let darkMode = "darkMode"
+    static let language = "language"
     static let onboarded = "onboarded"
 
     static func registerDefaults() {
@@ -14,6 +15,7 @@ enum Prefs {
             includeCacheReads: false,
             tokenBudget: 0,
             darkMode: false,
+            language: "system",
             onboarded: false,
         ])
     }

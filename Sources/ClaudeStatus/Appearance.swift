@@ -19,11 +19,25 @@ enum AppAppearance {
     }
 }
 
-/// Sets SwiftUI's color scheme from the Dark mode setting and follows changes live.
+/// Applies the Dark mode and Language settings and follows changes live.
+/// Changing the language rebuilds the view so every `L(...)` string is re-read.
 struct AppearanceScope: ViewModifier {
     @AppStorage(Prefs.darkMode) private var dark = false
+    @AppStorage(Prefs.language) private var language = "system"
     func body(content: Content) -> some View {
-        content.environment(\.colorScheme, dark ? .dark : .light)
+        content
+            .id(language)
+            .environment(\.colorScheme, dark ? .dark : .light)
+            .environment(\.locale, Locale(identifier: AppLanguage.resolved.rawValue))
+    }
+}
+
+struct LanguagePicker: View {
+    @AppStorage(Prefs.language) private var language = "system"
+    var body: some View {
+        Picker(L("Language"), selection: $language) {
+            ForEach(AppLanguage.allCases) { Text($0.label).tag($0.rawValue) }
+        }
     }
 }
 
