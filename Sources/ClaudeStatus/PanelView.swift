@@ -11,7 +11,7 @@ struct PanelView: View {
             content(now: tl.date)
         }
         .frame(width: 340)
-        .background(GridBackground())
+        .background(Theme.bg)
         .appAppearance()
     }
 

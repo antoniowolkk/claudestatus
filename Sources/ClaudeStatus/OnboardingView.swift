@@ -43,7 +43,7 @@ struct OnboardingView: View {
             .padding(20)
         }
         .frame(width: 560, height: 440)
-        .background(GridBackground())
+        .background(Theme.bg)
         .font(.system(size: 13))
         .toggleStyle(.switch)
     }

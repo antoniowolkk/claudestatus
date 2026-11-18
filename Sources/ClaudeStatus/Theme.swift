@@ -10,7 +10,6 @@ enum Theme {
     static let sub = adaptive(light: (0.38, 0.42, 0.50), dark: (0.60, 0.65, 0.74))
     static let faint = adaptive(light: (0.60, 0.64, 0.70), dark: (0.40, 0.45, 0.54))
     static let hair = adaptive(light: (0.08, 0.12, 0.22), dark: (0.55, 0.70, 1.0), lightAlpha: 0.09, darkAlpha: 0.12)
-    static let grid = adaptive(light: (0.10, 0.40, 0.80), dark: (0.20, 0.60, 1.0), lightAlpha: 0.045, darkAlpha: 0.06)
 
     static let accent = adaptive(light: (0.05, 0.45, 0.95), dark: (0.25, 0.60, 1.0))
     static let cyan = Color(red: 0.00, green: 0.76, blue: 0.86)
@@ -43,22 +42,6 @@ enum Theme {
     }
 }
 
-/// Faint blueprint grid behind panels.
-struct GridBackground: View {
-    var spacing: CGFloat = 14
-    var body: some View {
-        Canvas { ctx, size in
-            var path = Path()
-            var x: CGFloat = 0
-            while x <= size.width { path.move(to: .init(x: x, y: 0)); path.addLine(to: .init(x: x, y: size.height)); x += spacing }
-            var y: CGFloat = 0
-            while y <= size.height { path.move(to: .init(x: 0, y: y)); path.addLine(to: .init(x: size.width, y: y)); y += spacing }
-            ctx.stroke(path, with: .color(Theme.grid), lineWidth: 0.5)
-        }
-        .background(Theme.bg)
-        .allowsHitTesting(false)
-    }
-}
 
 /// HUD-style corner brackets.
 struct CornerBrackets: Shape {

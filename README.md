@@ -147,7 +147,7 @@ Sources/ClaudeStatus/
   PanelView.swift         menu bar panel
   SettingsView.swift      settings window
   OnboardingView.swift    first-run setup
-  Theme.swift             colors, grid, ring gauge, HUD cards
+  Theme.swift             colors, ring gauge, HUD cards
 Resources/                Info.plist, entitlements, icon
 scripts/                  build-app.sh, make-icon.swift
 install.sh / uninstall.sh

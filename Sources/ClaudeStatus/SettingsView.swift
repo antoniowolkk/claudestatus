@@ -34,7 +34,7 @@ struct SettingsView: View {
             }
         }
         .frame(width: 520, height: 460)
-        .background(GridBackground())
+        .background(Theme.bg)
     }
 }
 
