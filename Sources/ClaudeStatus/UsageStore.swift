@@ -73,20 +73,13 @@ final class UsageStore: ObservableObject {
 
     var includeCacheReads: Bool { UserDefaults.standard.bool(forKey: Prefs.includeCacheReads) }
 
-    /// Text shown next to the icon in the menu bar.
+    /// Hover tooltip for the menu bar icon: "Claude · 42.1k · Opus 5.5 · claudestatus".
     var menuBarText: String {
-        let d = UserDefaults.standard
-        var parts: [String] = []
-        if d.bool(forKey: Prefs.showTokens) {
-            let t = snapshot.block.map { $0.isActive ? $0.totals.tokens(includeCacheReads: includeCacheReads) : 0 } ?? 0
-            parts.append(Fmt.compact(t))
-        }
-        if d.bool(forKey: Prefs.showModel), let m = snapshot.context?.model {
-            parts.append(ModelName.short(m))
-        }
-        if d.bool(forKey: Prefs.showProject), let p = snapshot.context?.project {
-            parts.append(p.count > 20 ? String(p.prefix(19)) + "…" : p)
-        }
+        var parts = ["Claude"]
+        let t = snapshot.block.map { $0.isActive ? $0.totals.tokens(includeCacheReads: includeCacheReads) : 0 } ?? 0
+        parts.append("\(Fmt.compact(t)) tokens")
+        if let m = snapshot.context?.model { parts.append(ModelName.pretty(m)) }
+        if let p = snapshot.context?.project { parts.append(p) }
         return parts.joined(separator: " · ")
     }
 }

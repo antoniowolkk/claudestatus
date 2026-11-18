@@ -28,36 +28,32 @@ final class StatusController: NSObject {
 
     private var item: NSStatusItem?
     private var panel: StatusPanel?
-    private var host: NSHostingController<AnyView>?
+    private var hostView: NSHostingView<AnyView>?
+    /// Off-window copy of the panel content, used only to measure its height.
+    private var measurer: NSHostingController<AnyView>?
     private var clickMonitor: Any?
     private var keyMonitor: Any?
     private var bag = Set<AnyCancellable>()
+    private var resizeScheduled = false
 
     func install() {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.button?.image = Self.icon
-        item.button?.imagePosition = .imageLeading
+        item.button?.imagePosition = .imageOnly
         item.button?.target = self
         item.button?.action = #selector(toggle)
         item.button?.setAccessibilityLabel("Claude Status")
         self.item = item
 
-        let store = UsageStore.shared
-        store.$snapshot.map { _ in () }
-            .merge(with: NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification).map { _ in () })
+        // Icon only in the menu bar; the summary shows as a tooltip. When the panel is
+        // open, refit it to new content on the next run loop turn (never during layout).
+        UsageStore.shared.$snapshot
             .receive(on: RunLoop.main)
-            .sink { [weak self] in self?.updateTitle() }
+            .sink { [weak self] _ in
+                self?.item?.button?.toolTip = UsageStore.shared.menuBarText
+                self?.scheduleResize()
+            }
             .store(in: &bag)
-        updateTitle()
-    }
-
-    private func updateTitle() {
-        guard let button = item?.button else { return }
-        let text = UsageStore.shared.menuBarText
-        button.attributedTitle = NSAttributedString(
-            string: text.isEmpty ? "" : " " + text,
-            attributes: [.font: NSFont.monospacedSystemFont(ofSize: 11.5, weight: .medium)]
-        )
     }
 
     // MARK: Panel
@@ -69,10 +65,7 @@ final class StatusController: NSObject {
     func open() {
         let panel = self.panel ?? makePanel()
         self.panel = panel
-        if let host {
-            panel.setContentSize(host.view.fittingSize)
-        }
-        position(panel)
+        fit(panel)
         panel.orderFrontRegardless()
         panel.makeKey()
         item?.button?.highlight(true)
@@ -105,32 +98,48 @@ final class StatusController: NSObject {
                 .environment(\.colorScheme, .light)
                 .transaction { $0.animation = nil }
         )
-        let host = NSHostingController(rootView: root)
-        host.sizingOptions = [.preferredContentSize]
-        self.host = host
+        measurer = NSHostingController(rootView: root)
+        let view = NSHostingView(rootView: root)
+        // The hosting view must never resize the window on its own: doing so while the
+        // window lays out recurses until the stack overflows. We size it in fit(_:).
+        view.sizingOptions = []
+        hostView = view
 
         let panel = StatusPanel()
-        panel.contentViewController = host
-        // Keep the panel pinned under the menu bar when its content height changes.
-        NotificationCenter.default.addObserver(forName: NSWindow.didResizeNotification, object: panel, queue: .main) { [weak self] _ in
-            Task { @MainActor in
-                guard let self, let p = self.panel else { return }
-                self.position(p)
-            }
-        }
+        panel.contentView = view
         return panel
     }
 
-    private func position(_ panel: NSPanel) {
-        guard let button = item?.button, let bw = button.window else { return }
-        let anchor = bw.convertToScreen(button.convert(button.bounds, to: nil))
-        let screen = bw.screen ?? NSScreen.main
+    private func scheduleResize() {
+        guard panel?.isVisible == true, !resizeScheduled else { return }
+        resizeScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.resizeScheduled = false
+            if let p = self.panel, p.isVisible { self.fit(p) }
+        }
+    }
+
+    /// Sizes the panel to its content and pins its top edge under the menu bar icon.
+    private func fit(_ panel: NSPanel) {
+        guard let measurer else { return }
+        let fitted = measurer.sizeThatFits(in: NSSize(width: 340, height: 4000))
+        let size = NSSize(width: 340, height: ceil(fitted.height))
+        guard size.height > 0 else { return }
+
+        // An accessory app often has no key window, so NSScreen.main can be nil.
+        let screen = item?.button?.window?.screen ?? NSScreen.main ?? NSScreen.screens.first
         let visible = screen?.visibleFrame ?? .zero
-        let size = panel.frame.size
-        var x = anchor.midX - size.width / 2
-        x = min(max(x, visible.minX + 8), visible.maxX - size.width - 8)
-        let y = anchor.minY - size.height - 6
-        panel.setFrameOrigin(NSPoint(x: x, y: y))
+        // Default: top-right, just under the menu bar.
+        var origin = NSPoint(x: visible.maxX - size.width - 8, y: visible.maxY - size.height - 6)
+        if let button = item?.button, let bw = button.window, bw.frame.width > 0 {
+            let anchor = bw.convertToScreen(button.convert(button.bounds, to: nil))
+            var x = anchor.midX - size.width / 2
+            x = min(max(x, visible.minX + 8), visible.maxX - size.width - 8)
+            origin = NSPoint(x: x, y: min(anchor.minY, visible.maxY) - size.height - 6)
+        }
+        let frame = NSRect(origin: origin, size: size)
+        if panel.frame != frame { panel.setFrame(frame, display: true, animate: false) }
     }
 
     // MARK: Icon

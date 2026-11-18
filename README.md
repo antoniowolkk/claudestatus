@@ -13,9 +13,7 @@
   <img src="docs/panel.png" width="340" alt="Claude Status panel">
 </p>
 
-```
-✦ 42.1k · OPUS · claudestatus        ← what sits in your menu bar
-```
+Lives in your menu bar as a single icon — no text, no wasted space. Hover for a quick summary, click for the panel.
 
 ## Features
 
@@ -51,7 +49,7 @@ The wizard walks through 7 steps:
 | 4. Location | `~/Applications` (no password) or `/Applications` |
 | 5. Build | Compiles from source, signs with App Sandbox + hardened runtime |
 | 6. Install | Replaces any running copy |
-| 7. Launch | Opens the app; a setup window covers menu bar and startup options |
+| 7. Launch | Opens the app; a setup window checks data access and open at login |
 
 Non-interactive: `./install.sh --yes` (installs to `~/Applications` and opens the app).
 
@@ -66,7 +64,7 @@ scripts/build-app.sh --universal   # Apple silicon + Intel (needs full Xcode)
 
 ## Use
 
-Click **✦** in the menu bar to open the panel. From there:
+Click the **✦** icon in the menu bar to open the panel (hover it for a one-line summary). From there:
 
 - **↻** refreshes now (it also refreshes on its own every 20 seconds)
 - **⚙** opens Settings
@@ -76,7 +74,7 @@ Click **✦** in the menu bar to open the panel. From there:
 
 | Tab | Options |
 | --- | --- |
-| General | What shows in the menu bar (tokens, model, project), counting cache reads, a 5-hour token budget, refresh rate, open at login, rerun setup |
+| General | Counting cache reads, a 5-hour token budget, refresh rate, open at login, rerun setup |
 | Privacy | What the app reads and never does, and a shortcut to the logs folder |
 
 ### Active projects
@@ -141,7 +139,7 @@ Sources/ClaudeStatus/
   ClaudeStatusApp.swift   app entry, windows, login item
   StatusController.swift  menu bar item + instant, animation-free panel
   LogScanner.swift        incremental, read-only log parser + 5-hour windows
-  UsageStore.swift        refresh loop and menu bar text
+  UsageStore.swift        refresh loop and menu bar tooltip
   Pricing.swift           per-model price table for cost estimates
   PanelView.swift         menu bar panel
   SettingsView.swift      settings window

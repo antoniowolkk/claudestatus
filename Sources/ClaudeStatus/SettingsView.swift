@@ -51,9 +51,6 @@ private struct Section<Content: View>: View {
 
 private struct GeneralSettings: View {
     @EnvironmentObject var store: UsageStore
-    @AppStorage(Prefs.showTokens) private var showTokens = true
-    @AppStorage(Prefs.showModel) private var showModel = true
-    @AppStorage(Prefs.showProject) private var showProject = true
     @AppStorage(Prefs.includeCacheReads) private var includeCacheReads = false
     @AppStorage(Prefs.refreshInterval) private var refresh = 20
     @AppStorage(Prefs.tokenBudget) private var budget = 0
@@ -62,13 +59,6 @@ private struct GeneralSettings: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Section(title: "Menu bar") {
-                Toggle("Show tokens in the 5-hour window", isOn: $showTokens)
-                Toggle("Show model", isOn: $showModel)
-                Toggle("Show project folder", isOn: $showProject)
-                Text("Preview: \(store.menuBarText.isEmpty ? "icon only" : store.menuBarText)")
-                    .font(Theme.mono(11)).foregroundStyle(Theme.sub)
-            }
             Section(title: "Usage") {
                 Toggle("Count cache reads as tokens", isOn: $includeCacheReads)
                 Text("Cache reads are cheap and can be very large. Off shows input, output and cache writes.")

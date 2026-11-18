@@ -33,6 +33,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         Task { @MainActor in
             StatusController.shared.install()
+            if CommandLine.arguments.contains("--open-panel") { // testing aid
+                try? await Task.sleep(for: .seconds(1))
+                StatusController.shared.open()
+            }
             if !UserDefaults.standard.bool(forKey: Prefs.onboarded) {
                 WindowManager.shared.showOnboarding()
             }
@@ -86,8 +90,10 @@ final class WindowManager {
         let root = content()
             .environmentObject(UsageStore.shared)
             .environment(\.colorScheme, .light)
-        let host = NSHostingController(rootView: root)
-        let w = NSWindow(contentViewController: host)
+        let view = NSHostingView(rootView: root)
+        view.sizingOptions = [] // fixed-size windows; no automatic window resizing
+        let w = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
+        w.contentView = view
         w.title = title
         w.styleMask = [.titled, .closable, .fullSizeContentView]
         w.titlebarAppearsTransparent = true

@@ -4,9 +4,6 @@ import Foundation
 enum Prefs {
     static let refreshInterval = "refreshInterval"
     static let includeCacheReads = "includeCacheReads"
-    static let showTokens = "showTokensInBar"
-    static let showModel = "showModelInBar"
-    static let showProject = "showProjectInBar"
     static let tokenBudget = "tokenBudget"
     static let onboarded = "onboarded"
 
@@ -14,9 +11,6 @@ enum Prefs {
         UserDefaults.standard.register(defaults: [
             refreshInterval: 20,
             includeCacheReads: false,
-            showTokens: true,
-            showModel: true,
-            showProject: true,
             tokenBudget: 0,
             onboarded: false,
         ])

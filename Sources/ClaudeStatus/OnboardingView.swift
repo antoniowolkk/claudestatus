@@ -5,9 +5,6 @@ import AppKit
 struct OnboardingView: View {
     @EnvironmentObject var store: UsageStore
     @State private var step = 0
-    @AppStorage(Prefs.showTokens) private var showTokens = true
-    @AppStorage(Prefs.showModel) private var showModel = true
-    @AppStorage(Prefs.showProject) private var showProject = true
     @State private var login = LoginItem.isEnabled
     @State private var loginError: String?
 
@@ -114,19 +111,16 @@ struct OnboardingView: View {
 
     private var menuBar: some View {
         VStack(alignment: .leading, spacing: 12) {
-            title("Menu bar", "Pick what shows next to the icon. Click the icon any time for the full panel.")
+            title("Menu bar", "Claude Status lives in your menu bar as a single icon. Click it for the full panel; hover it for a quick summary.")
             HUDCard(padding: 14) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Toggle("Tokens", isOn: $showTokens)
-                    Toggle("Model", isOn: $showModel)
-                    Toggle("Project folder", isOn: $showProject)
-                    HStack(spacing: 6) {
-                        Image(systemName: "sparkle")
-                        Text(store.menuBarText.isEmpty ? " " : store.menuBarText)
+                    HStack(spacing: 10) {
+                        Image(nsImage: StatusController.icon)
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background(RoundedRectangle(cornerRadius: 6).fill(Theme.hair))
+                        Text("Look for this icon at the top right of your screen.")
+                            .font(.system(size: 12)).foregroundStyle(Theme.sub)
                     }
-                    .font(Theme.mono(12, .medium))
-                    .padding(.horizontal, 10).padding(.vertical, 4)
-                    .background(RoundedRectangle(cornerRadius: 6).fill(Theme.hair))
                     Divider()
                     Toggle("Open at login", isOn: $login)
                         .onChange(of: login) { _, on in
