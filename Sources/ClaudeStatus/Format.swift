@@ -73,29 +73,3 @@ enum ModelName {
     static func short(_ id: String) -> String { parse(id).family.uppercased() }
 }
 
-enum Surface {
-    static func name(_ entrypoint: String) -> String {
-        switch entrypoint {
-        case "": return "—"
-        case "cli": return "CLI"
-        case "claude-desktop": return L("Desktop app")
-        case "claude-vscode": return "VS Code"
-        case let s where s.contains("jetbrains"): return "JetBrains"
-        case let s where s.hasPrefix("sdk"): return "Agent SDK"
-        case let s where s.contains("web") || s.contains("remote") || s.contains("cloud"): return L("Cloud")
-        default: return entrypoint
-        }
-    }
-
-    static func icon(_ entrypoint: String) -> String {
-        switch entrypoint {
-        case "cli": return "terminal"
-        case "claude-desktop": return "macwindow"
-        case "claude-vscode": return "chevron.left.forwardslash.chevron.right"
-        case let s where s.contains("jetbrains"): return "chevron.left.forwardslash.chevron.right"
-        case let s where s.hasPrefix("sdk"): return "shippingbox"
-        case let s where s.contains("web") || s.contains("remote") || s.contains("cloud"): return "cloud"
-        default: return "questionmark.circle"
-        }
-    }
-}

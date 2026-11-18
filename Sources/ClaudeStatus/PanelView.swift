@@ -27,7 +27,6 @@ struct PanelView: View {
             } else {
                 hero(snap, now: now)
                 stats(snap)
-                nowCard(snap)
                 if !snap.projects.isEmpty { projectsCard(snap, now: now) }
             }
             footer(snap, now: now)
@@ -145,40 +144,6 @@ struct PanelView: View {
         .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Theme.hair, lineWidth: 0.5))
     }
 
-    // MARK: Now
-
-    private func nowCard(_ snap: UsageSnapshot) -> some View {
-        let c = snap.context!
-        return HUDCard {
-            VStack(spacing: 8) {
-                row("folder", L("PROJECT")) {
-                    HStack(spacing: 6) {
-                        if c.worktree != nil {
-                            Text(L("WORKTREE"))
-                                .font(Theme.label(8)).tracking(1)
-                                .padding(.horizontal, 5).padding(.vertical, 1)
-                                .foregroundStyle(Theme.violet)
-                                .background(Capsule().fill(Theme.violet.opacity(0.10)))
-                        }
-                        Text(c.project).font(Theme.mono(12, .semibold)).foregroundStyle(Theme.ink).lineLimit(1).truncationMode(.middle)
-                    }
-                }
-                .help(c.cwd)
-                row("arrow.triangle.branch", L("BRANCH")) {
-                    Text(Self.branchText(c.branch))
-                        .font(Theme.mono(12)).foregroundStyle(Theme.ink).lineLimit(1).truncationMode(.middle)
-                }
-                row("cpu", L("MODEL")) {
-                    Text(ModelName.pretty(c.model)).font(Theme.mono(12)).foregroundStyle(Theme.ink)
-                }
-                .help(c.model)
-                row(Surface.icon(c.entrypoint), L("SURFACE")) {
-                    Text(Surface.name(c.entrypoint)).font(Theme.mono(12)).foregroundStyle(Theme.ink)
-                }
-            }
-        }
-    }
-
     // MARK: Projects
 
     private static let maxProjects = 6
@@ -241,18 +206,6 @@ struct PanelView: View {
 
     private static func branchText(_ branch: String) -> String {
         branch.isEmpty || branch == "HEAD" ? L("no branch") : branch
-    }
-
-    private func row<V: View>(_ icon: String, _ label: String, @ViewBuilder value: () -> V) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 11))
-                .foregroundStyle(Theme.accent)
-                .frame(width: 16)
-            Text(label).font(Theme.label(9)).tracking(1.4).foregroundStyle(Theme.faint)
-            Spacer(minLength: 8)
-            value()
-        }
     }
 
     // MARK: Messages + footer

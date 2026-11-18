@@ -66,11 +66,6 @@ enum Strings {
         "7 DAYS": ("7 TAGE", "7日間"),
         "CACHE": ("CACHE", "キャッシュ"),
         "hit today": ("Treffer", "ヒット率"),
-        "PROJECT": ("PROJEKT", "プロジェクト"),
-        "WORKTREE": ("WORKTREE", "ワークツリー"),
-        "BRANCH": ("BRANCH", "ブランチ"),
-        "MODEL": ("MODELL", "モデル"),
-        "SURFACE": ("UMGEBUNG", "実行環境"),
         "ACTIVE PROJECTS": ("AKTIVE PROJEKTE", "アクティブなプロジェクト"),
         "LAST 24H": ("LETZTE 24 STD.", "過去24時間"),
         "+%d more": ("+%d weitere", "他 %d 件"),
@@ -96,9 +91,6 @@ enum Strings {
         "%dm": ("%d Min.", "%d分"),
         "<1m": ("<1 Min.", "1分未満"),
 
-        // Surfaces
-        "Desktop app": ("Desktop-App", "デスクトップアプリ"),
-        "Cloud": ("Cloud", "クラウド"),
 
         // Settings
         "SETTINGS": ("EINSTELLUNGEN", "設定"),

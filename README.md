@@ -21,7 +21,6 @@ Lives in your menu bar as a single icon — no text, no wasted space. Hover for 
 
 - **5-hour window** — tokens used in the current usage window, a ring showing time left (or % of your own budget), reset time and an estimated cost.
 - **Session, today, 7 days** — token totals and estimated cost, plus today's cache hit rate.
-- **Project you're in now** — the folder, git branch, model (Opus 5.5, Sonnet 5.5, …) and surface (CLI, desktop app, VS Code, JetBrains, Agent SDK).
 - **Active projects** — every folder Claude worked in during the last 24 hours, newest first, with a live / active / idle dot, branch, worktree count and tokens. Claude Code worktrees and subfolders fold into their repo, so `AVIREO/.claude/worktrees/…` shows as **AVIREO**.
 - **Setup wizard** — a terminal installer and a first-run window that checks everything for you.
 - **English, Deutsch, 日本語** — pick a language in Settings, or let it follow your Mac. Switches live.
@@ -83,7 +82,7 @@ Click the **✦** icon in the menu bar to open the panel (hover it for a one-lin
 
 ### Active projects
 
-Each row is one project with Claude activity in the last 24 hours:
+Each row is one project with Claude activity in the last 24 hours. Hover the menu bar icon for the model you're on.
 
 | Dot | Meaning |
 | --- | --- |
