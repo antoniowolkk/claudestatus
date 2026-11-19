@@ -1,0 +1,30 @@
+import Foundation
+
+/// UserDefaults keys. Settings live in the app's own sandbox container.
+enum Prefs {
+    static let refreshInterval = "refreshInterval"
+    static let includeCacheReads = "includeCacheReads"
+    static let tokenBudget = "tokenBudget"
+    static let darkMode = "darkMode"
+    static let language = "language"
+    static let notifyDone = "notifyDone"
+    static let notifyQuestion = "notifyQuestion"
+    static let notifyLimit = "notifyLimit"
+    static let notifyOnlyAway = "notifyOnlyAway"
+    static let onboarded = "onboarded"
+
+    static func registerDefaults() {
+        UserDefaults.standard.register(defaults: [
+            refreshInterval: 20,
+            includeCacheReads: false,
+            tokenBudget: 0,
+            darkMode: false,
+            language: "system",
+            notifyDone: true,
+            notifyQuestion: true,
+            notifyLimit: true,
+            notifyOnlyAway: true,
+            onboarded: false,
+        ])
+    }
+}
