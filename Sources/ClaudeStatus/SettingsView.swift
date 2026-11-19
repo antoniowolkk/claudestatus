@@ -205,7 +205,6 @@ private struct AboutSettings: View {
 /// What Wolkk is and what it can do, from wolkk.com.
 struct WolkkSettings: View {
     private let services: [(name: String, text: String)] = [
-        ("Vibe Coding Support", "Fix your AI-generated code: bug fixing, cleanup, production-ready software."),
         ("Dedicated Teams", "Senior developers who work only on your product. Ready within 4 weeks."),
         ("Hybrid Teams", "Wolkk developers alongside your in-house team, with a 24/7 development cycle."),
         ("Agile Development", "Scrum masters, product owners and developers. Sprint-based delivery and rapid prototyping."),
