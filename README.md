@@ -127,6 +127,7 @@ Claude Code writes one JSON line per message to `~/.claude/projects/<project>/<s
 | Writes | Only its own settings, inside its sandbox container. Never writes to `~/.claude`. |
 | Secrets | No API keys, tokens or accounts. |
 | Telemetry | None. |
+| Links | The Wolkk links open wolkk.com in your browser with campaign tags that name only the app and the button (`utm_source=wolkky-claude-status&utm_medium=app&utm_content=panel-footer`). Nothing about you or your usage is added. |
 | Install | Built from source on your Mac. No `curl \| bash`, no downloads, no `sudo` unless you choose `/Applications`. |
 | Signing | Ad-hoc signed with hardened runtime. Set `SIGN_IDENTITY` to sign with your own Developer ID. |
 

@@ -4,7 +4,17 @@ import AppKit
 /// The menu bar panel, in a terminal / ASCII style.
 struct PanelView: View {
     static let width: CGFloat = 360
-    static let wolkkURL = URL(string: "https://wolkk.com")!
+    /// wolkk.com with campaign tags, so Wolkk can see visits that came from the app.
+    /// The tags only name the app and the button; nothing about you is added.
+    static func wolkkURL(from placement: String) -> URL {
+        var c = URLComponents(string: "https://wolkk.com/")!
+        c.queryItems = [
+            URLQueryItem(name: "utm_source", value: "wolkky-claude-status"),
+            URLQueryItem(name: "utm_medium", value: "app"),
+            URLQueryItem(name: "utm_content", value: placement),
+        ]
+        return c.url!
+    }
 
     @EnvironmentObject var store: UsageStore
     @AppStorage(Prefs.tokenBudget) private var budget = 0
@@ -291,13 +301,13 @@ struct PanelView: View {
             HStack(spacing: 0) {
                 Text(L("powered by") + " ").foregroundStyle(Theme.faint)
                 Button {
-                    NSWorkspace.shared.open(Self.wolkkURL)
+                    NSWorkspace.shared.open(Self.wolkkURL(from: "panel-footer"))
                 } label: {
                     Text("Wolkk").underline().foregroundStyle(Theme.accent)
                 }
                 .buttonStyle(.plain)
                 .onHover { inside in if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() } }
-                .help(Self.wolkkURL.absoluteString)
+                .help("wolkk.com")
                 Spacer()
                 Text(snap.updatedAt.map { L("SYNC %@", Fmt.ago($0, now: now).uppercased()) } ?? L("SYNCING"))
                     .foregroundStyle(Theme.faint)

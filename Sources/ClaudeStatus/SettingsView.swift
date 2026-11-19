@@ -189,7 +189,7 @@ private struct AboutSettings: View {
                 Text(L("Wolkky Claude Status is made by Wolkk."))
                     .foregroundStyle(Theme.ink)
                 HStack(spacing: 8) {
-                    AsciiButton(label: "wolkk.com") { NSWorkspace.shared.open(PanelView.wolkkURL) }
+                    AsciiButton(label: "wolkk.com") { NSWorkspace.shared.open(PanelView.wolkkURL(from: "settings-about")) }
                     AsciiButton(label: L("Source on GitHub")) { NSWorkspace.shared.open(Self.repoURL) }
                 }
             }
