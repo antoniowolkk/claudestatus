@@ -14,7 +14,7 @@ final class UsageStore: ObservableObject {
         if expanded.contains(root) { expanded.remove(root) } else { expanded.insert(root) }
     }
 
-    private let scanner = LogScanner()
+    let scanner = LogScanner()
     private var loop: Task<Void, Never>?
 
     private init() {
@@ -41,6 +41,7 @@ final class UsageStore: ObservableObject {
         let task = Task { [scanner] in
             isRefreshing = true
             snapshot = await scanner.snapshot(now: Date())
+            Notifier.shared.process(snapshot)
             isRefreshing = false
         }
         inFlight = task

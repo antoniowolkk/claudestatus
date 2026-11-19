@@ -19,6 +19,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Light unless the user turned on Dark mode (independent of the system setting).
         NSApp.appearance = AppAppearance.nsAppearance
 
+        // Developer helper: `ClaudeStatus --dump` prints what the scanner found and exits.
+        if CommandLine.arguments.contains("--dump") {
+            Task { @MainActor in
+                await UsageStore.shared.refresh()
+                let s = UsageStore.shared.snapshot
+                print("peak 5h window:", s.peakBlock.tokens(includeCacheReads: false))
+                let day = await UsageStore.shared.scanner.turnEnds(since: Date().addingTimeInterval(-24 * 3600))
+                print("turn ends 24h:", day.count, "· 1+ min:", day.filter { $0.duration >= Notifier.minTurn }.count)
+                for t in day.suffix(3) { print("  e.g.", ProjectPath.name(ProjectPath.root(t.cwd)), Fmt.duration(t.duration)) }
+                for t in s.turnEnds { print("turn end:", ProjectPath.name(ProjectPath.root(t.cwd)), Int(t.duration), "s", t.end) }
+                for q in s.questions { print("question:", ProjectPath.name(ProjectPath.root(q.cwd)), q.time) }
+                for p in s.projects.prefix(8) {
+                    print("project:", p.name, "context", p.contextTokens, "/", p.contextLimit, "running", p.activities.filter { $0.isRunning(now: Date()) }.count)
+                }
+                exit(0)
+            }
+            return
+        }
         // Developer helper: `ClaudeStatus --snapshot out.png` renders the panel and exits.
         let args = CommandLine.arguments
         if let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count {
@@ -36,6 +54,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         Task { @MainActor in
             StatusController.shared.install()
+            Notifier.shared.start()
+            if CommandLine.arguments.contains("--notify-test") { // testing aid
+                try? await Task.sleep(for: .seconds(2))
+                Notifier.shared.test()
+            }
             if CommandLine.arguments.contains("--open-panel") { // testing aid
                 try? await Task.sleep(for: .seconds(1))
                 StatusController.shared.open()

@@ -107,6 +107,10 @@ struct PanelView: View {
                 }
                 .font(Theme.mono(10))
                 .foregroundStyle(Theme.faint)
+                if let b = block {
+                    let f = Forecast(tokens: tokens, block: b, budget: budget, now: now)
+                    Text("> " + f.text).font(Theme.mono(10)).foregroundStyle(f.warning ? Theme.danger : Theme.sub)
+                }
             }
         }
     }
@@ -218,6 +222,19 @@ struct PanelView: View {
 
     private func activityList(_ p: ProjectActivity, now: Date) -> some View {
         VStack(alignment: .leading, spacing: 3) {
+            if p.contextLimit > 0 {
+                let used = Double(p.contextTokens) / Double(p.contextLimit)
+                let tint = used >= 0.8 ? Theme.danger : used >= 0.6 ? Theme.amber : Theme.accent
+                HStack(spacing: 6) {
+                    Text(L("context")).foregroundStyle(Theme.faint)
+                    AsciiBar(progress: used, cells: 14, tint: tint, fontSize: 10)
+                    Text(Fmt.percent(used)).foregroundStyle(tint)
+                    Text(Fmt.compact(p.contextTokens) + "/" + Fmt.compact(p.contextLimit)).foregroundStyle(Theme.faint)
+                }
+                .font(Theme.mono(10))
+                .help(used >= 0.8 ? L("Context almost full. Consider /compact.") : L("Context window use of the latest session."))
+                .padding(.bottom, 3)
+            }
             if p.activities.isEmpty {
                 Text("└ " + L("No commands in the last 24 hours"))
                     .font(Theme.mono(10)).foregroundStyle(Theme.faint)
@@ -318,5 +335,33 @@ struct AsciiButton: View {
         .buttonStyle(.plain)
         .onHover { hover = $0 }
         .accessibilityLabel(label)
+    }
+}
+
+/// Where the current 5-hour window is heading at the current pace.
+struct Forecast {
+    let text: String
+    let warning: Bool
+
+    init(tokens: Int, block: BlockInfo, budget: Int, now: Date) {
+        let elapsed = now.timeIntervalSince(block.start)
+        let remaining = max(0, block.end.timeIntervalSince(now))
+        guard elapsed >= 600, tokens > 0 else {
+            text = L("measuring pace…"); warning = false; return
+        }
+        let perSecond = Double(tokens) / elapsed
+        let projected = Int(Double(tokens) + perSecond * remaining)
+        let pace = Fmt.compact(Int(perSecond * 60))
+        guard budget > 0 else {
+            text = L("pace %@/min · ≈%@ by reset", pace, Fmt.compact(projected)); warning = false; return
+        }
+        if tokens >= budget {
+            text = L("over budget"); warning = true
+        } else if projected >= budget {
+            let hit = now.addingTimeInterval(Double(budget - tokens) / perSecond)
+            text = L("at this pace: limit ≈ %@", hit.formatted(date: .omitted, time: .shortened)); warning = true
+        } else {
+            text = L("on pace for %@ by reset", Fmt.percent(Double(projected) / Double(budget))); warning = false
+        }
     }
 }

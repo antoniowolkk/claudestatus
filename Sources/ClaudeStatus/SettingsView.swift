@@ -54,6 +54,10 @@ private struct GeneralSettings: View {
     @AppStorage(Prefs.refreshInterval) private var refresh = 20
     @AppStorage(Prefs.tokenBudget) private var budget = 0
     @AppStorage(Prefs.darkMode) private var darkMode = false
+    @AppStorage(Prefs.notifyDone) private var notifyDone = true
+    @AppStorage(Prefs.notifyQuestion) private var notifyQuestion = true
+    @AppStorage(Prefs.notifyLimit) private var notifyLimit = true
+    @AppStorage(Prefs.notifyOnlyAway) private var notifyOnlyAway = true
     @State private var login = LoginItem.isEnabled
     @State private var loginError: String?
 
@@ -80,6 +84,14 @@ private struct GeneralSettings: View {
                 }
                 Text(L("Set a budget to show the bar as % used. 0 shows time elapsed instead."))
                     .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                let peak = store.snapshot.peakBlock.tokens(includeCacheReads: includeCacheReads)
+                if peak > 0 {
+                    HStack(spacing: 8) {
+                        Text(L("Busiest 5-hour window this week: %@", Fmt.compact(peak)))
+                            .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                        AsciiButton(label: L("use")) { budget = peak }
+                    }
+                }
                 Picker(L("Refresh every"), selection: $refresh) {
                     Text(L("10 seconds")).tag(10)
                     Text(L("20 seconds")).tag(20)
@@ -88,6 +100,17 @@ private struct GeneralSettings: View {
                 }
                 .onChange(of: refresh) { store.start() }
             }
+            Section(title: L("Notifications")) {
+                Toggle(L("When Claude finishes (after 1+ min of work)"), isOn: $notifyDone)
+                Toggle(L("When Claude asks you something"), isOn: $notifyQuestion)
+                Toggle(L("At 80%, 90% and 100% of my 5-hour budget"), isOn: $notifyLimit)
+                Toggle(L("Only when I'm in another app"), isOn: $notifyOnlyAway)
+                Text(L("Clicking a notification opens the panel. You can change alerts in System Settings › Notifications."))
+                    .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+            }
+            .onChange(of: notifyDone) { if Notifier.shared.anyEnabled { Notifier.shared.requestAuthorization() } }
+            .onChange(of: notifyQuestion) { if Notifier.shared.anyEnabled { Notifier.shared.requestAuthorization() } }
+            .onChange(of: notifyLimit) { if Notifier.shared.anyEnabled { Notifier.shared.requestAuthorization() } }
             Section(title: L("Startup")) {
                 Toggle(L("Open at login"), isOn: $login)
                     .onChange(of: login) { _, on in

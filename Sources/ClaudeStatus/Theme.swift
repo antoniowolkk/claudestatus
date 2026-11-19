@@ -74,14 +74,16 @@ struct HUDCard<Content: View>: View {
 struct AsciiBar: View {
     var progress: Double
     var cells = 26
+    var tint: Color? = nil
+    var fontSize: CGFloat = 11
     var body: some View {
         let p = max(0, min(progress, 1))
         let filled = Int((p * Double(cells)).rounded())
         return (Text("[").foregroundColor(Theme.faint)
-            + Text(String(repeating: "█", count: filled)).foregroundColor(p >= 0.9 ? Theme.danger : Theme.accent)
+            + Text(String(repeating: "█", count: filled)).foregroundColor(tint ?? (p >= 0.9 ? Theme.danger : Theme.accent))
             + Text(String(repeating: "░", count: cells - filled)).foregroundColor(Theme.line)
             + Text("]").foregroundColor(Theme.faint))
-            .font(Theme.mono(11))
+            .font(Theme.mono(fontSize))
             .lineLimit(1)
             .fixedSize()
     }

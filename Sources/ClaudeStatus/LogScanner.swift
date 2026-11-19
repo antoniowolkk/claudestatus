@@ -14,6 +14,7 @@ actor LogScanner {
     private var files: [String: FileState] = [:]
     private var entries: [String: UsageEntry] = [:]
     private var tools: [String: ToolActivity] = [:]
+    private var questions: [String: PendingQuestion] = [:]
     private let retention: TimeInterval = 8 * 24 * 3600
     private let maxLineBytes = 32 << 20
     private let chunkBytes = 4 << 20
@@ -39,9 +40,14 @@ actor LogScanner {
 
     static var projectsDir: String { realHome + "/.claude/projects" }
 
+    /// Developer check (`--dump`): finished turns since a date.
+    func turnEnds(since: Date) -> [TurnEnd] {
+        SnapshotBuilder.turnEnds(entries.values.sorted { $0.time < $1.time }, since: since)
+    }
+
     func snapshot(now: Date = Date()) -> UsageSnapshot {
         let (count, error) = scan(now: now)
-        var snap = SnapshotBuilder.build(entries: Array(entries.values), tools: Array(tools.values), now: now)
+        var snap = SnapshotBuilder.build(entries: Array(entries.values), tools: Array(tools.values), questions: Array(questions.values), now: now)
         snap.filesScanned = count
         snap.error = error
         snap.updatedAt = now
@@ -86,6 +92,7 @@ actor LogScanner {
         entries = entries.filter { $0.value.time >= cutoff }
         let toolCutoff = now.addingTimeInterval(-24 * 3600)
         tools = tools.filter { $0.value.time >= toolCutoff }
+        questions = questions.filter { $0.value.time >= toolCutoff }
         return (seen.count, nil)
     }
 
@@ -169,14 +176,19 @@ actor LogScanner {
             sessionId: obj["sessionId"] as? String ?? "",
             cwd: cwd,
             branch: obj["gitBranch"] as? String ?? "",
-            entrypoint: obj["entrypoint"] as? String ?? ""
+            entrypoint: obj["entrypoint"] as? String ?? "",
+            stopReason: msg["stop_reason"] as? String ?? "",
+            isSidechain: obj["isSidechain"] as? Bool ?? false
         )
 
         // Tool calls in this message. Kept as one-line summaries only.
         if let content = msg["content"] as? [[String: Any]] {
             for block in content where block["type"] as? String == "tool_use" {
-                guard let id = block["id"] as? String, tools[id] == nil,
-                      let name = block["name"] as? String, !ToolSummary.hidden(name) else { continue }
+                guard let id = block["id"] as? String, let name = block["name"] as? String else { continue }
+                if name == "AskUserQuestion" || name == "ExitPlanMode", questions[id] == nil {
+                    questions[id] = PendingQuestion(id: id, time: time, cwd: cwd, entrypoint: entry.entrypoint)
+                }
+                guard tools[id] == nil, !ToolSummary.hidden(name) else { continue }
                 let (tool, detail) = ToolSummary.describe(name: name, input: block["input"] as? [String: Any] ?? [:])
                 tools[id] = ToolActivity(id: id, time: time, cwd: cwd, tool: tool, detail: detail, status: .running)
             }
@@ -195,7 +207,9 @@ actor LogScanner {
               let content = msg["content"] as? [[String: Any]]
         else { return }
         for block in content where block["type"] as? String == "tool_result" {
-            guard let id = block["tool_use_id"] as? String, tools[id] != nil else { continue }
+            guard let id = block["tool_use_id"] as? String else { continue }
+            questions[id] = nil // answered
+            guard tools[id] != nil else { continue }
             tools[id]?.status = (block["is_error"] as? Bool ?? false) ? .failed : .done
         }
     }
@@ -245,7 +259,7 @@ enum ToolSummary {
 enum SnapshotBuilder {
     static let blockLength: TimeInterval = 5 * 3600
 
-    static func build(entries: [UsageEntry], tools: [ToolActivity] = [], now: Date) -> UsageSnapshot {
+    static func build(entries: [UsageEntry], tools: [ToolActivity] = [], questions: [PendingQuestion] = [], now: Date) -> UsageSnapshot {
         var snap = UsageSnapshot()
         let sorted = entries.sorted { $0.time < $1.time }
         guard let last = sorted.last else { return snap }
@@ -273,6 +287,9 @@ enum SnapshotBuilder {
                e.time.timeIntervalSince(l) < blockLength {
                 blockTotals.add(e)
             } else {
+                if blockTotals.tokens(includeCacheReads: false) > snap.peakBlock.tokens(includeCacheReads: false) {
+                    snap.peakBlock = blockTotals
+                }
                 blockStart = cal.dateInterval(of: .hour, for: e.time)?.start ?? e.time
                 blockTotals = UsageTotals()
                 blockTotals.add(e)
@@ -280,12 +297,33 @@ enum SnapshotBuilder {
             lastTime = e.time
         }
 
+        if blockTotals.tokens(includeCacheReads: false) > snap.peakBlock.tokens(includeCacheReads: false) {
+            snap.peakBlock = blockTotals
+        }
+        snap.turnEnds = turnEnds(sorted, since: now.addingTimeInterval(-30 * 60))
+        snap.questions = questions.filter { $0.time >= now.addingTimeInterval(-30 * 60) }
         if let s = blockStart {
             let end = s.addingTimeInterval(blockLength)
             snap.block = BlockInfo(start: s, end: end, totals: blockTotals, isActive: end > now)
         }
         snap.projects = projects(sorted.filter { $0.time >= now.addingTimeInterval(-24 * 3600) && !$0.cwd.isEmpty }, tools: tools)
         return snap
+    }
+
+    /// Turns that ended (stop reason "end_turn") after `since`, with when the turn started.
+    static func turnEnds(_ sorted: [UsageEntry], since: Date) -> [TurnEnd] {
+        var start: [String: Date] = [:]
+        var out: [TurnEnd] = []
+        for e in sorted where !e.isSidechain {
+            if start[e.sessionId] == nil { start[e.sessionId] = e.time }
+            if e.stopReason == "end_turn" {
+                if e.time >= since, let st = start[e.sessionId] {
+                    out.append(TurnEnd(id: e.key, sessionId: e.sessionId, cwd: e.cwd, entrypoint: e.entrypoint, start: st, end: e.time))
+                }
+                start[e.sessionId] = nil
+            }
+        }
+        return out
     }
 
     /// Groups entries by project. Subfolders and worktrees fold into their repo.
@@ -307,6 +345,10 @@ enum SnapshotBuilder {
             p.lastActivity = e.time
             p.branch = e.branch
             p.worktree = ProjectPath.worktree(e.cwd)
+            if !e.isSidechain {
+                p.contextTokens = e.contextSize
+                p.contextLimit = ContextWindow.limit(for: e.model)
+            }
             byRoot[root] = p
             if let w = ProjectPath.worktree(e.cwd) { worktrees[root, default: []].insert(w) }
             sessions[root, default: []].insert(e.sessionId)

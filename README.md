@@ -20,6 +20,9 @@ Lives in your menu bar as Wolkky — no text, no wasted space. Hover for a quick
 ## Features
 
 - **5-hour window** — tokens used in the current usage window, a text progress bar `[█████░░░░░]` for time elapsed (or % of your own budget), time left, reset time and an estimated cost.
+- **Notifications** — Wolkky taps you when Claude finishes a task (1+ minute of work), when Claude asks you a question, and at 80 / 90 / 100% of your 5-hour budget. Only while you're in another app, if you like. Click a notification to open the panel.
+- **Limit forecast** — your pace in tokens per minute and where the window lands by reset. With a budget set: "at this pace: limit ≈ 16:40". Settings suggests a budget from your busiest 5-hour window this week.
+- **Context meter** — expand a project to see how full its latest session's context window is (`context [██████░░░░] 45% · 448k/1M`), red when it's time to `/compact`.
 - **Session, today, 7 days** — token totals and estimated cost, plus today's cache hit rate.
 - **Active projects** — every folder Claude worked in during the last 24 hours, newest first, with a live / active / idle dot, branch, worktree count and tokens. Claude Code worktrees and subfolders fold into their repo, so `AVIREO/.claude/worktrees/…` shows as **AVIREO**.
 - **What's running** — click a project to expand it and see Claude's latest commands there (`$ swift build`, `edit PanelView.swift`, `grep …`) with `run` / `ok` / `err` status.
@@ -79,7 +82,7 @@ Click the **✦** icon in the menu bar to open the panel (hover it for a one-lin
 
 | Tab | Options |
 | --- | --- |
-| General | Dark mode, language, counting cache reads, a 5-hour token budget, refresh rate, open at login, rerun setup |
+| General | Dark mode, language, notifications, counting cache reads, a 5-hour token budget, refresh rate, open at login, rerun setup |
 | Privacy | What the app reads and never does, and a shortcut to the logs folder |
 | About | Version, Wolkky, Wolkk website and source code |
 
@@ -162,7 +165,7 @@ scripts/                  build-app.sh, make-icon.swift, prepare-mascot.swift
 install.sh / uninstall.sh
 ```
 
-Render the panel to a PNG without opening the menu bar (handy for docs):
+Developer helpers: `--dump` prints what the scanner found (finished turns, open questions, context per project). Render the panel to a PNG without opening the menu bar (handy for docs):
 
 ```bash
 .build/release/ClaudeStatus --snapshot panel.png --demo
