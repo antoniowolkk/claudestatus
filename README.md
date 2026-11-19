@@ -21,8 +21,8 @@
 
 Lives in your menu bar as Wolkky — no text, no wasted space. Hover for a quick summary, click for the panel.
 
-> **Built something with Claude that now has to ship?**
-> [Wolkk](https://wolkk.com/?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status) turns AI-coded prototypes into production-ready software, and gives your team senior developers from Indonesia when you need more hands. [See how Wolkk works →](#about-wolkk)
+> **Need more hands on your product?**
+> [Wolkk](https://wolkk.com/?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status) gives your team senior developers from Indonesia, as a dedicated team or alongside your in-house developers. [See how Wolkk works →](#about-wolkk)
 
 ## Features
 
@@ -93,7 +93,7 @@ Click **Wolkky** in the menu bar to open the panel; hover for a one-line summary
 | General | Dark mode, language, notifications, counting cache reads, a 5-hour token budget, refresh rate, open at login, rerun setup |
 | Privacy | What the app reads and never does, and a shortcut to the logs folder |
 | About | Version, Wolkky, Wolkk website and source code |
-| Wolkk | What Wolkk is and what it can do for you: Vibe Coding Support, dedicated and hybrid teams, agile development, with links to contact Wolkk |
+| Wolkk | What Wolkk is and what it can do for you: dedicated and hybrid teams, agile development, with links to contact Wolkk |
 
 ### Active projects
 
@@ -191,7 +191,6 @@ If you build with Claude Code, here's where Wolkk can help:
 
 | | |
 | --- | --- |
-| **Vibe Coding Support** | Your AI-coded prototype works on a good day? Wolkk fixes what's broken and turns it into production-ready software. |
 | **Dedicated teams** | Full-time senior developers who work only on your product, with your tools and your processes. |
 | **Hybrid teams** | Wolkk developers alongside your in-house team, scaling up or down as you need, with knowledge transfer built in. |
 | **Agile delivery** | Sprint-based development with continuous iteration. |
