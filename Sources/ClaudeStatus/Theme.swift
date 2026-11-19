@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-/// Clean, slightly sci-fi palette. Light by default; dark when the user turns on Dark mode.
+/// Terminal-style (ASCII) palette. Light by default; dark when the user turns on Dark mode.
 /// Every color adapts to the appearance of the view it's drawn in.
 enum Theme {
     static let bg = adaptive(light: (0.975, 0.98, 0.99), dark: (0.045, 0.06, 0.09))
@@ -9,6 +9,7 @@ enum Theme {
     static let ink = adaptive(light: (0.08, 0.10, 0.14), dark: (0.90, 0.93, 0.97))
     static let sub = adaptive(light: (0.38, 0.42, 0.50), dark: (0.60, 0.65, 0.74))
     static let faint = adaptive(light: (0.60, 0.64, 0.70), dark: (0.40, 0.45, 0.54))
+    static let line = adaptive(light: (0.70, 0.74, 0.80), dark: (0.24, 0.29, 0.38))
     static let hair = adaptive(light: (0.08, 0.12, 0.22), dark: (0.55, 0.70, 1.0), lightAlpha: 0.09, darkAlpha: 0.12)
 
     static let accent = adaptive(light: (0.05, 0.45, 0.95), dark: (0.25, 0.60, 1.0))
@@ -43,55 +44,45 @@ enum Theme {
 }
 
 
-/// HUD-style corner brackets.
-struct CornerBrackets: Shape {
-    var length: CGFloat = 8
-    func path(in r: CGRect) -> Path {
-        var p = Path()
-        let l = length
-        p.move(to: .init(x: r.minX, y: r.minY + l)); p.addLine(to: .init(x: r.minX, y: r.minY)); p.addLine(to: .init(x: r.minX + l, y: r.minY))
-        p.move(to: .init(x: r.maxX - l, y: r.minY)); p.addLine(to: .init(x: r.maxX, y: r.minY)); p.addLine(to: .init(x: r.maxX, y: r.minY + l))
-        p.move(to: .init(x: r.maxX, y: r.maxY - l)); p.addLine(to: .init(x: r.maxX, y: r.maxY)); p.addLine(to: .init(x: r.maxX - l, y: r.maxY))
-        p.move(to: .init(x: r.minX + l, y: r.maxY)); p.addLine(to: .init(x: r.minX, y: r.maxY)); p.addLine(to: .init(x: r.minX, y: r.maxY - l))
-        return p
-    }
-}
-
+/// ASCII box: sharp 1px border with an optional `[ TITLE ]` label set into the top edge.
 struct HUDCard<Content: View>: View {
+    var title: String? = nil
     var padding: CGFloat = 12
     @ViewBuilder var content: Content
     var body: some View {
         content
             .padding(padding)
+            .padding(.top, title == nil ? 0 : 4)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.card))
-            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(Theme.hair, lineWidth: 0.5))
-            .overlay(CornerBrackets().stroke(Theme.accent.opacity(0.55), lineWidth: 1.2).padding(3))
-            .shadow(color: Theme.accent.opacity(0.06), radius: 10, y: 3)
-    }
-}
-
-struct RingGauge: View {
-    var progress: Double
-    var lineWidth: CGFloat = 6
-
-    var body: some View {
-        ZStack {
-            ForEach(0..<48, id: \.self) { i in
-                Rectangle()
-                    .fill(Theme.hair)
-                    .frame(width: 1, height: i % 4 == 0 ? 5 : 3)
-                    .offset(y: -(lineWidth + 34))
-                    .rotationEffect(.degrees(Double(i) / 48 * 360))
+            .background(Theme.card)
+            .overlay(Rectangle().stroke(Theme.line, lineWidth: 1))
+            .overlay(alignment: .topLeading) {
+                if let title {
+                    Text("[ \(title) ]")
+                        .font(Theme.label(9))
+                        .foregroundStyle(Theme.accent)
+                        .padding(.horizontal, 2)
+                        .background(Theme.bg)
+                        .offset(x: 10, y: -7)
+                }
             }
-            Circle().stroke(Theme.hair, lineWidth: lineWidth)
-            Circle()
-                .trim(from: 0, to: max(0.004, min(progress, 1)))
-                .stroke(Theme.ring, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .shadow(color: Theme.cyan.opacity(0.35), radius: 4)
-        }
+            .padding(.top, title == nil ? 0 : 7)
     }
 }
 
-
+/// Text progress bar: `[██████████░░░░░░░░░░]`.
+struct AsciiBar: View {
+    var progress: Double
+    var cells = 26
+    var body: some View {
+        let p = max(0, min(progress, 1))
+        let filled = Int((p * Double(cells)).rounded())
+        return (Text("[").foregroundColor(Theme.faint)
+            + Text(String(repeating: "█", count: filled)).foregroundColor(p >= 0.9 ? Theme.danger : Theme.accent)
+            + Text(String(repeating: "░", count: cells - filled)).foregroundColor(Theme.line)
+            + Text("]").foregroundColor(Theme.faint))
+            .font(Theme.mono(11))
+            .lineLimit(1)
+            .fixedSize()
+    }
+}

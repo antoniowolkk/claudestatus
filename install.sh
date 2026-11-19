@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Claude Status install wizard.
+# Wolkky Claude Status install wizard.
 #
 #   ./install.sh          interactive
 #   ./install.sh --yes    accept defaults (install to ~/Applications, open app)
@@ -10,7 +10,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-APP_NAME="Claude Status"
+APP_NAME="Wolkky Claude Status"
 BUNDLE_ID="com.antoniowolkk.claudestatus"
 YES=0
 [[ "${1:-}" == "--yes" || "${1:-}" == "-y" ]] && YES=1
@@ -112,12 +112,20 @@ if pgrep -f "$APP_NAME.app/Contents/MacOS/ClaudeStatus" >/dev/null 2>&1; then
   note "Closed the running copy."
 fi
 $SUDO rm -rf "$DEST/$APP_NAME.app"
+# Remove the app from before the Wolkky rename, if present.
+for OLD in "$HOME/Applications/Claude Status.app" "/Applications/Claude Status.app"; do
+  if [[ -d "$OLD" ]]; then
+    pkill -f "$OLD/Contents/MacOS/ClaudeStatus" >/dev/null 2>&1 || true
+    if [[ -w "$(dirname "$OLD")" ]]; then rm -rf "$OLD"; else sudo rm -rf "$OLD"; fi
+    note "Removed the old Claude Status.app"
+  fi
+done
 $SUDO ditto "$ROOT/build/$APP_NAME.app" "$DEST/$APP_NAME.app"
 ok "Copied to $DEST"
 
 # ── 7. Launch ──────────────────────────────────────────────────────────────
 header "Done"
-if ask "Open Claude Status now?" y; then
+if ask "Open Wolkky Claude Status now?" y; then
   open "$DEST/$APP_NAME.app"
   ok "Look for ✦ in your menu bar. The setup window walks you through the rest."
 else

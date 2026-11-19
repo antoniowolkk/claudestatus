@@ -11,9 +11,9 @@
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>Claude Status</string>
+    <string>Wolkky Claude Status</string>
     <key>CFBundleDisplayName</key>
-    <string>Claude Status</string>
+    <string>Wolkky Claude Status</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -31,6 +31,6 @@
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>Claude Status. Not affiliated with Anthropic.</string>
+    <string>Made by Wolkk. Not affiliated with Anthropic.</string>
 </dict>
 </plist>

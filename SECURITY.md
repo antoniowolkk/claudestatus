@@ -2,12 +2,12 @@
 
 ## Design
 
-Claude Status is built to need as little trust as possible:
+Wolkky Claude Status is built to need as little trust as possible:
 
 - **App Sandbox on, no network entitlement.** The app can't open network connections.
 - **Read-only file access** to exactly one folder, `~/.claude/projects/` (Claude Code session logs), declared in [`Resources/ClaudeStatus.entitlements`](Resources/ClaudeStatus.entitlements).
 - **Hardened runtime** signing.
-- **Minimal data in memory.** The parser keeps token counts, model, project folder, branch and surface. Message text, tool inputs and outputs are discarded.
+- **Minimal data in memory.** The parser keeps token counts, model, project folder, branch, and a one-line summary of recent tool calls (first line of a shell command, a file name or a search term) so the panel can show what's running. Message text and command output are discarded, and nothing is written to disk.
 - **No secrets.** The app never asks for or stores API keys, tokens or passwords.
 - **No telemetry** of any kind.
 - **Defensive parsing.** Symlinks are skipped, oversized lines are dropped, and invalid JSON is ignored.
@@ -16,7 +16,7 @@ Claude Status is built to need as little trust as possible:
 You can check the sandbox yourself:
 
 ```bash
-codesign -d --entitlements - "$HOME/Applications/Claude Status.app"
+codesign -d --entitlements - "$HOME/Applications/Wolkky Claude Status.app"
 ```
 
 ## Reporting a vulnerability

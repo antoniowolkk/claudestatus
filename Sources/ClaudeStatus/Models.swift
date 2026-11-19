@@ -80,6 +80,26 @@ enum ProjectPath {
     }
 }
 
+/// One tool call Claude made (a shell command, a file edit, a search, …).
+/// Only a one-line summary is kept, in memory.
+struct ToolActivity: Sendable, Equatable, Identifiable {
+    enum Status: Sendable, Equatable { case running, done, failed }
+
+    let id: String
+    let time: Date
+    let cwd: String
+    let tool: String
+    let detail: String
+    var status: Status
+
+    /// A call with no result after this long was most likely interrupted.
+    static let staleAfter: TimeInterval = 15 * 60
+
+    func isRunning(now: Date) -> Bool {
+        status == .running && now.timeIntervalSince(time) < Self.staleAfter
+    }
+}
+
 /// One project folder Claude worked in recently.
 struct ProjectActivity: Sendable, Equatable, Identifiable {
     var id: String { root }
@@ -91,6 +111,8 @@ struct ProjectActivity: Sendable, Equatable, Identifiable {
     var totals = UsageTotals()
     var worktrees = 0
     var sessions = 0
+    /// Latest tool calls in this project, newest first.
+    var activities: [ToolActivity] = []
 }
 
 /// A rolling 5-hour usage window, the same shape Claude plans use for limits.

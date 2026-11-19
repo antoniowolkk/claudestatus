@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds "Claude Status.app" into ./build. No network access needed after the toolchain is installed.
+# Builds "Wolkky Claude Status.app" into ./build. No network access needed after the toolchain is installed.
 #
 #   scripts/build-app.sh              native architecture
 #   scripts/build-app.sh --universal  Apple silicon + Intel (needs full Xcode)
@@ -11,7 +11,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-APP_NAME="Claude Status"
+APP_NAME="Wolkky Claude Status"
 APP="$ROOT/build/$APP_NAME.app"
 ARCH_FLAGS=()
 if [[ "${1:-}" == "--universal" ]]; then

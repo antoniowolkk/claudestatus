@@ -7,6 +7,12 @@ final class UsageStore: ObservableObject {
 
     @Published private(set) var snapshot = UsageSnapshot.empty
     @Published private(set) var isRefreshing = false
+    /// Project rows open in the panel (by project root).
+    @Published var expanded: Set<String> = []
+
+    func toggleExpanded(_ root: String) {
+        if expanded.contains(root) { expanded.remove(root) } else { expanded.insert(root) }
+    }
 
     private let scanner = LogScanner()
     private var loop: Task<Void, Never>?
@@ -61,7 +67,14 @@ final class UsageStore: ObservableObject {
                                  lastActivity: now.addingTimeInterval(-20)),
             projects: [
                 ProjectActivity(root: "/Users/you/work/orbit-api", name: "orbit-api", branch: "feat/telemetry",
-                                lastActivity: now.addingTimeInterval(-20), totals: t(9_000, 14_000, 21_000, 0, 1.10), worktrees: 2, sessions: 3),
+                                lastActivity: now.addingTimeInterval(-20), totals: t(9_000, 14_000, 21_000, 0, 1.10), worktrees: 2, sessions: 3,
+                                activities: [
+                                    ToolActivity(id: "d1", time: now.addingTimeInterval(-8), cwd: "", tool: "$", detail: "swift test --filter TelemetryTests", status: .running),
+                                    ToolActivity(id: "d2", time: now.addingTimeInterval(-40), cwd: "", tool: "edit", detail: "TelemetryClient.swift", status: .done),
+                                    ToolActivity(id: "d3", time: now.addingTimeInterval(-75), cwd: "", tool: "grep", detail: "emitEvent\\(", status: .done),
+                                    ToolActivity(id: "d4", time: now.addingTimeInterval(-130), cwd: "", tool: "$", detail: "swift build -c release", status: .failed),
+                                    ToolActivity(id: "d5", time: now.addingTimeInterval(-200), cwd: "", tool: "read", detail: "Package.swift", status: .done),
+                                ]),
                 ProjectActivity(root: "/Users/you/work/nova-web", name: "nova-web", branch: "main",
                                 lastActivity: now.addingTimeInterval(-900), totals: t(6_000, 9_500, 12_000, 0, 0.74), sessions: 1),
                 ProjectActivity(root: "/Users/you/lab/pulse-cli", name: "pulse-cli", branch: "fix/parser",

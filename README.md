@@ -1,27 +1,29 @@
 <p align="center">
-  <img src="docs/icon.png" width="112" alt="Claude Status icon">
+  <img src="docs/icon.png" width="112" alt="Wolkky Claude Status icon">
 </p>
 
-<h1 align="center">Claude Status</h1>
+<h1 align="center">Wolkky Claude Status</h1>
 
 <p align="center">
-  A light, futuristic macOS menu bar readout for <b>Claude Code</b>:<br>
-  token usage, model, and which project folders Claude is working in — at a glance.
+  A terminal-style macOS menu bar readout for <b>Claude Code</b>, starring Wolkky, Wolkk's mascot:<br>
+  token usage, which project folders Claude is working in, and what it's running right now.
 </p>
 
 <p align="center">
-  <img src="docs/panel.png" width="320" alt="Claude Status panel, light">
+  <img src="docs/panel.png" width="320" alt="Wolkky Claude Status panel, light">
   &nbsp;
-  <img src="docs/panel-dark.png" width="320" alt="Claude Status panel, dark">
+  <img src="docs/panel-dark.png" width="320" alt="Wolkky Claude Status panel, dark">
 </p>
 
-Lives in your menu bar as a single icon — no text, no wasted space. Hover for a quick summary, click for the panel.
+Lives in your menu bar as Wolkky — no text, no wasted space. Hover for a quick summary, click for the panel.
 
 ## Features
 
-- **5-hour window** — tokens used in the current usage window, a ring showing time left (or % of your own budget), reset time and an estimated cost.
+- **5-hour window** — tokens used in the current usage window, a text progress bar `[█████░░░░░]` for time elapsed (or % of your own budget), time left, reset time and an estimated cost.
 - **Session, today, 7 days** — token totals and estimated cost, plus today's cache hit rate.
 - **Active projects** — every folder Claude worked in during the last 24 hours, newest first, with a live / active / idle dot, branch, worktree count and tokens. Claude Code worktrees and subfolders fold into their repo, so `AVIREO/.claude/worktrees/…` shows as **AVIREO**.
+- **What's running** — click a project to expand it and see Claude's latest commands there (`$ swift build`, `edit PanelView.swift`, `grep …`) with `run` / `ok` / `err` status.
+- **ASCII theme** — monospace text, boxed sections, tree lines and `[ button ]` controls.
 - **Setup wizard** — a terminal installer and a first-run window that checks everything for you.
 - **English, Deutsch, 日本語** — pick a language in Settings, or let it follow your Mac. Switches live.
 - **Light or dark** — light by default, with a Dark mode switch in Settings. Your choice, not tied to the system setting.
@@ -61,7 +63,7 @@ Update later with `git pull && ./install.sh`.
 ### Build by hand
 
 ```bash
-scripts/build-app.sh               # → build/Claude Status.app
+scripts/build-app.sh               # → build/Wolkky Claude Status.app
 scripts/build-app.sh --universal   # Apple silicon + Intel (needs full Xcode)
 ```
 
@@ -79,22 +81,26 @@ Click the **✦** icon in the menu bar to open the panel (hover it for a one-lin
 | --- | --- |
 | General | Dark mode, language, counting cache reads, a 5-hour token budget, refresh rate, open at login, rerun setup |
 | Privacy | What the app reads and never does, and a shortcut to the logs folder |
+| About | Version, Wolkky, Wolkk website and source code |
 
 ### Active projects
 
 Each row is one project with Claude activity in the last 24 hours. Hover the menu bar icon for the model you're on.
 
-| Dot | Meaning |
+| Tag | Meaning |
 | --- | --- |
-| Green · LIVE | Message in the last 2 minutes |
-| Blue · ACTIVE | Message in the last 30 minutes |
-| Gray | Idle; shows how long ago |
+| `[RUN]` | A command is running right now |
+| `[LIVE]` | Message in the last 2 minutes |
+| `[ACTIVE]` | Message in the last 30 minutes |
+| `[3h ago]` | Idle; shows how long ago |
 
-The highlighted row is the project you're in now. Hover a row to see its full path. Up to 6 projects are listed.
+Click a row to expand it. Each line is one tool call: `$` shell command, `edit` / `read` / `write` file, `grep` / `glob` search, `agent`, `mcp`, and so on. Status is `run` (still running), `ok`, `err` (failed) or `stop` (no result after 15 minutes, likely interrupted). Up to 8 recent calls per project.
+
+The highlighted row, marked `>`, is the project you're in now. Hover a row to see its full path. Up to 6 projects are listed.
 
 ## How usage is counted
 
-Claude Code writes one JSON line per message to `~/.claude/projects/<project>/<session>.jsonl`. Claude Status reads the assistant messages from the last 8 days and removes duplicates.
+Claude Code writes one JSON line per message to `~/.claude/projects/<project>/<session>.jsonl`. Wolkky Claude Status reads the assistant messages from the last 8 days and removes duplicates.
 
 - **Tokens** = input + output + cache writes. Cache reads are left out by default because they're cheap and can be huge; turn them on in Settings.
 - **5-hour window** starts at the hour of your first message and lasts 5 hours, the same way Claude plans count usage limits. A new window starts with the first message after it ends.
@@ -106,7 +112,7 @@ Claude Code writes one JSON line per message to `~/.claude/projects/<project>/<s
 | --- | --- |
 | Network | None. The App Sandbox blocks all network access; the app has no network entitlement. |
 | Files | Read-only access to `~/.claude/projects/`. Nothing else, enforced by the sandbox. |
-| What's kept | Token counts, model, folder path, branch and surface, in memory only. Message text is discarded while parsing. |
+| What's kept | Token counts, model, folder path, branch, and a one-line summary of recent commands (first line of a shell command, a file name or a search term), in memory only. Message text and command output are discarded while parsing. |
 | Writes | Only its own settings, inside its sandbox container. Never writes to `~/.claude`. |
 | Secrets | No API keys, tokens or accounts. |
 | Telemetry | None. |
@@ -147,11 +153,12 @@ Sources/ClaudeStatus/
   PanelView.swift         menu bar panel
   SettingsView.swift      settings window
   OnboardingView.swift    first-run setup
-  Theme.swift             colors, ring gauge, HUD cards
+  Theme.swift             colors, ASCII boxes and progress bar
+  WolkkyImage.swift       embedded Wolkky mascot (generated)
   Strings.swift           English, German and Japanese text
   Appearance.swift        dark mode and live language switching
 Resources/                Info.plist, entitlements, icon
-scripts/                  build-app.sh, make-icon.swift
+scripts/                  build-app.sh, make-icon.swift, prepare-mascot.swift
 install.sh / uninstall.sh
 ```
 
@@ -163,4 +170,4 @@ Render the panel to a PNG without opening the menu bar (handy for docs):
 
 ---
 
-Claude Status is an independent project and is not made by or affiliated with Anthropic.
+Wolkky Claude Status is made by [Wolkk](https://wolkk.com). Wolkky is Wolkk's mascot. Not made by or affiliated with Anthropic.

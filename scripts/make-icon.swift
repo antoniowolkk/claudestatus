@@ -1,8 +1,11 @@
-// Renders the app icon to Resources/AppIcon.icns.
-// Usage: swift scripts/make-icon.swift
+// Renders the app icon (Wolkky on a light tile) to Resources/AppIcon.icns and docs/icon.png.
+// Usage: swift scripts/make-icon.swift   (run scripts/prepare-mascot.swift first)
 import AppKit
 
 let root = URL(fileURLWithPath: CommandLine.arguments[0]).deletingLastPathComponent().deletingLastPathComponent()
+guard let mascot = NSImage(contentsOf: root.appendingPathComponent("Resources/Wolkky.png")) else {
+    print("Missing Resources/Wolkky.png — run scripts/prepare-mascot.swift first"); exit(1)
+}
 let iconset = FileManager.default.temporaryDirectory.appendingPathComponent("AppIcon.iconset")
 try? FileManager.default.removeItem(at: iconset)
 try FileManager.default.createDirectory(at: iconset, withIntermediateDirectories: true)
@@ -16,64 +19,31 @@ func draw(_ px: Int) -> Data {
     NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
     let ctx = NSGraphicsContext.current!.cgContext
 
-    // Rounded light tile
+    // Light sky tile
     let inset = s * 0.09
     let tile = CGRect(x: inset, y: inset, width: s - inset * 2, height: s - inset * 2)
     let path = CGPath(roundedRect: tile, cornerWidth: s * 0.2, cornerHeight: s * 0.2, transform: nil)
+    ctx.saveGState()
     ctx.setShadow(offset: CGSize(width: 0, height: -s * 0.012), blur: s * 0.03,
-                  color: NSColor(red: 0.05, green: 0.3, blue: 0.8, alpha: 0.25).cgColor)
+                  color: NSColor(red: 0.05, green: 0.3, blue: 0.8, alpha: 0.22).cgColor)
     ctx.addPath(path)
-    ctx.setFillColor(NSColor(red: 0.985, green: 0.99, blue: 1, alpha: 1).cgColor)
+    ctx.setFillColor(NSColor.white.cgColor)
     ctx.fillPath()
-    ctx.setShadow(offset: .zero, blur: 0, color: nil)
-
-    // Blueprint grid
+    ctx.restoreGState()
     ctx.saveGState()
     ctx.addPath(path); ctx.clip()
-    ctx.setStrokeColor(NSColor(red: 0.1, green: 0.4, blue: 0.8, alpha: 0.07).cgColor)
-    ctx.setLineWidth(max(1, s / 512))
-    var g = tile.minX
-    while g < tile.maxX { ctx.move(to: CGPoint(x: g, y: tile.minY)); ctx.addLine(to: CGPoint(x: g, y: tile.maxY)); g += s / 16 }
-    g = tile.minY
-    while g < tile.maxY { ctx.move(to: CGPoint(x: tile.minX, y: g)); ctx.addLine(to: CGPoint(x: tile.maxX, y: g)); g += s / 16 }
-    ctx.strokePath()
+    let sky = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                         colors: [NSColor(red: 0.80, green: 0.91, blue: 1.0, alpha: 1).cgColor,
+                                  NSColor(red: 0.97, green: 0.99, blue: 1.0, alpha: 1).cgColor] as CFArray,
+                         locations: [0, 1])!
+    ctx.drawLinearGradient(sky, start: CGPoint(x: 0, y: tile.minY), end: CGPoint(x: 0, y: tile.maxY), options: [])
     ctx.restoreGState()
 
-    // Gauge ring
-    let c = CGPoint(x: s / 2, y: s / 2)
-    let r = s * 0.27
-    let lw = s * 0.055
-    ctx.setLineWidth(lw)
-    ctx.setLineCap(.round)
-    ctx.setStrokeColor(NSColor(red: 0.08, green: 0.12, blue: 0.22, alpha: 0.08).cgColor)
-    ctx.addArc(center: c, radius: r, startAngle: 0, endAngle: .pi * 2, clockwise: false)
-    ctx.strokePath()
-
-    let cyan = NSColor(red: 0, green: 0.76, blue: 0.86, alpha: 1)
-    let blue = NSColor(red: 0.05, green: 0.45, blue: 0.95, alpha: 1)
-    let violet = NSColor(red: 0.45, green: 0.36, blue: 0.95, alpha: 1)
-    let steps = 120
-    let start = CGFloat.pi / 2
-    let sweep = CGFloat.pi * 2 * 0.72
-    for i in 0..<steps {
-        let t = CGFloat(i) / CGFloat(steps)
-        let col = t < 0.5 ? cyan.blended(withFraction: t * 2, of: blue)! : blue.blended(withFraction: (t - 0.5) * 2, of: violet)!
-        ctx.setStrokeColor(col.cgColor)
-        ctx.addArc(center: c, radius: r, startAngle: start - sweep * t, endAngle: start - sweep * (t + 1.0 / CGFloat(steps)) - 0.002, clockwise: true)
-        ctx.strokePath()
-    }
-
-    // Four-point spark in the middle
-    let k = s * 0.12
-    let spark = CGMutablePath()
-    spark.move(to: CGPoint(x: c.x, y: c.y + k))
-    spark.addQuadCurve(to: CGPoint(x: c.x + k, y: c.y), control: CGPoint(x: c.x + k * 0.15, y: c.y + k * 0.15))
-    spark.addQuadCurve(to: CGPoint(x: c.x, y: c.y - k), control: CGPoint(x: c.x + k * 0.15, y: c.y - k * 0.15))
-    spark.addQuadCurve(to: CGPoint(x: c.x - k, y: c.y), control: CGPoint(x: c.x - k * 0.15, y: c.y - k * 0.15))
-    spark.addQuadCurve(to: CGPoint(x: c.x, y: c.y + k), control: CGPoint(x: c.x - k * 0.15, y: c.y + k * 0.15))
-    ctx.addPath(spark)
-    ctx.setFillColor(blue.cgColor)
-    ctx.fillPath()
+    // Wolkky, centered
+    let maxW = tile.width * 0.74
+    let ratio = mascot.size.height / mascot.size.width
+    let mw = maxW, mh = maxW * ratio
+    mascot.draw(in: CGRect(x: (s - mw) / 2, y: (s - mh) / 2 - s * 0.01, width: mw, height: mh))
 
     NSGraphicsContext.restoreGraphicsState()
     return rep.representation(using: .png, properties: [:])!

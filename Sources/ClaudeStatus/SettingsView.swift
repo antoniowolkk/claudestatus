@@ -13,10 +13,11 @@ struct SettingsView: View {
                 Picker("", selection: $tab) {
                     Text(L("General")).tag(0)
                     Text(L("Privacy")).tag(1)
+                    Text(L("About")).tag(2)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 240)
+                .frame(width: 300)
             }
             .padding(.horizontal, 20)
             .padding(.top, 34)
@@ -26,7 +27,8 @@ struct SettingsView: View {
                 Group {
                     switch tab {
                     case 0: GeneralSettings()
-                    default: PrivacySettings()
+                    case 1: PrivacySettings()
+                    default: AboutSettings()
                     }
                 }
                 .padding(.horizontal, 20)
@@ -42,10 +44,7 @@ private struct Section<Content: View>: View {
     var title: String
     @ViewBuilder var content: Content
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title.uppercased()).font(Theme.label(9)).tracking(1.6).foregroundStyle(Theme.accent)
-            HUDCard { VStack(alignment: .leading, spacing: 10) { content } }
-        }
+        HUDCard(title: title.uppercased()) { VStack(alignment: .leading, spacing: 10) { content } }
     }
 }
 
@@ -64,14 +63,14 @@ private struct GeneralSettings: View {
                 Toggle(L("Dark mode"), isOn: $darkMode)
                     .onChange(of: darkMode) { AppAppearance.apply() }
                 Text(L("Off keeps the app light, whatever your Mac is set to."))
-                    .font(.system(size: 11)).foregroundStyle(Theme.sub)
+                    .font(Theme.mono(11)).foregroundStyle(Theme.sub)
                 LanguagePicker()
                     .frame(maxWidth: 280)
             }
             Section(title: L("Usage")) {
                 Toggle(L("Count cache reads as tokens"), isOn: $includeCacheReads)
                 Text(L("Cache reads are cheap and can be very large. Off shows input, output and cache writes."))
-                    .font(.system(size: 11)).foregroundStyle(Theme.sub)
+                    .font(Theme.mono(11)).foregroundStyle(Theme.sub)
                 HStack {
                     Text(L("5-hour token budget"))
                     Spacer()
@@ -79,8 +78,8 @@ private struct GeneralSettings: View {
                         .frame(width: 110)
                         .multilineTextAlignment(.trailing)
                 }
-                Text(L("Set a budget to show the ring as % used. 0 shows time left instead."))
-                    .font(.system(size: 11)).foregroundStyle(Theme.sub)
+                Text(L("Set a budget to show the bar as % used. 0 shows time elapsed instead."))
+                    .font(Theme.mono(11)).foregroundStyle(Theme.sub)
                 Picker(L("Refresh every"), selection: $refresh) {
                     Text(L("10 seconds")).tag(10)
                     Text(L("20 seconds")).tag(20)
@@ -96,14 +95,14 @@ private struct GeneralSettings: View {
                         login = LoginItem.isEnabled
                     }
                 if let loginError {
-                    Text(loginError).font(.system(size: 11)).foregroundStyle(Theme.danger)
+                    Text(loginError).font(Theme.mono(11)).foregroundStyle(Theme.danger)
                 }
                 Button(L("Run setup again")) { WindowManager.shared.showOnboarding() }
             }
         }
         .toggleStyle(.switch)
         .controlSize(.small)
-        .font(.system(size: 12))
+        .font(Theme.mono(12))
     }
 }
 
@@ -111,7 +110,7 @@ private struct PrivacySettings: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Section(title: L("What this app reads")) {
-                bullet("doc.text.magnifyingglass", L("Claude Code logs in ~/.claude/projects, read-only. Only token counts, model, project folder, branch and surface are kept, in memory."))
+                bullet("doc.text.magnifyingglass", L("Claude Code logs in ~/.claude/projects, read-only. Kept in memory only: token counts, model, project folder, branch, and a one-line summary of recent commands (first line, file name or search term)."))
             }
             Section(title: L("What it never does")) {
                 bullet("wifi.slash", L("No network access. The App Sandbox blocks it."))
@@ -125,10 +124,10 @@ private struct PrivacySettings: View {
                 }
                 Spacer()
                 Text(L("Cost is an estimate from public API prices."))
-                    .font(.system(size: 10)).foregroundStyle(Theme.faint)
+                    .font(Theme.mono(10)).foregroundStyle(Theme.faint)
             }
         }
-        .font(.system(size: 12))
+        .font(Theme.mono(12))
     }
 
     private func bullet(_ icon: String, _ text: String) -> some View {
@@ -136,5 +135,44 @@ private struct PrivacySettings: View {
             Image(systemName: icon).foregroundStyle(Theme.accent).frame(width: 16)
             Text(text).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
         }
+    }
+}
+
+private struct AboutSettings: View {
+    static let repoURL = URL(string: "https://github.com/antoniowolkk/claudestatus")!
+
+    private var version: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HUDCard(padding: 16) {
+                HStack(spacing: 18) {
+                    Image(nsImage: WolkkyImage.image)
+                        .resizable().interpolation(.high).scaledToFit()
+                        .frame(width: 96)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Wolkky Claude Status")
+                            .font(Theme.mono(15, .semibold)).foregroundStyle(Theme.ink)
+                        Text(L("Version %@", version))
+                            .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                        Text(L("Wolkky is Wolkk's mascot."))
+                            .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                    }
+                }
+            }
+            Section(title: L("About Wolkk")) {
+                Text(L("Wolkky Claude Status is made by Wolkk."))
+                    .foregroundStyle(Theme.ink)
+                HStack(spacing: 8) {
+                    AsciiButton(label: "wolkk.com") { NSWorkspace.shared.open(PanelView.wolkkURL) }
+                    AsciiButton(label: L("Source on GitHub")) { NSWorkspace.shared.open(Self.repoURL) }
+                }
+            }
+            Text(L("Not affiliated with Anthropic."))
+                .font(Theme.mono(10)).foregroundStyle(Theme.faint)
+        }
+        .font(Theme.mono(12))
     }
 }

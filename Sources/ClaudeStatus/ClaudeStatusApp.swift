@@ -25,6 +25,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 await UsageStore.shared.refresh()
                 if args.contains("--demo") { UsageStore.shared.loadDemo() }
+                if args.contains("--expand"), let first = UsageStore.shared.snapshot.projects.first {
+                    UsageStore.shared.expanded = [first.root]
+                }
                 Snapshotter.render(to: args[i + 1])
                 exit(0)
             }
@@ -36,6 +39,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if CommandLine.arguments.contains("--open-panel") { // testing aid
                 try? await Task.sleep(for: .seconds(1))
                 StatusController.shared.open()
+                if CommandLine.arguments.contains("--expand") {
+                    try? await Task.sleep(for: .seconds(4))
+                    if let first = UsageStore.shared.snapshot.projects.first { UsageStore.shared.toggleExpanded(first.root) }
+                }
             }
             if !UserDefaults.standard.bool(forKey: Prefs.onboarded) {
                 WindowManager.shared.showOnboarding()
@@ -68,13 +75,13 @@ final class WindowManager {
     private var windows: [String: NSWindow] = [:]
 
     func showOnboarding() {
-        show(id: "onboarding", title: L("Welcome to Claude Status"), size: CGSize(width: 560, height: 440)) {
+        show(id: "onboarding", title: L("Welcome to Wolkky Claude Status"), size: CGSize(width: 560, height: 500)) {
             AnyView(OnboardingView())
         }
     }
 
     func showSettings() {
-        show(id: "settings", title: L("Claude Status Settings"), size: CGSize(width: 520, height: 460)) {
+        show(id: "settings", title: L("Wolkky Claude Status Settings"), size: CGSize(width: 520, height: 460)) {
             AnyView(SettingsView())
         }
     }

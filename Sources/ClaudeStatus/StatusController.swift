@@ -37,12 +37,12 @@ final class StatusController: NSObject {
     private var resizeScheduled = false
 
     func install() {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.image = Self.icon
         item.button?.imagePosition = .imageOnly
         item.button?.target = self
         item.button?.action = #selector(toggle)
-        item.button?.setAccessibilityLabel("Claude Status")
+        item.button?.setAccessibilityLabel("Wolkky Claude Status")
         self.item = item
 
         // Icon only in the menu bar; the summary shows as a tooltip. When the panel is
@@ -53,6 +53,10 @@ final class StatusController: NSObject {
                 self?.item?.button?.toolTip = UsageStore.shared.menuBarText
                 self?.scheduleResize()
             }
+            .store(in: &bag)
+        UsageStore.shared.$expanded
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.scheduleResize() }
             .store(in: &bag)
     }
 
@@ -123,8 +127,8 @@ final class StatusController: NSObject {
     /// Sizes the panel to its content and pins its top edge under the menu bar icon.
     private func fit(_ panel: NSPanel) {
         guard let measurer else { return }
-        let fitted = measurer.sizeThatFits(in: NSSize(width: 340, height: 4000))
-        let size = NSSize(width: 340, height: ceil(fitted.height))
+        let fitted = measurer.sizeThatFits(in: NSSize(width: PanelView.width, height: 4000))
+        let size = NSSize(width: PanelView.width, height: ceil(fitted.height))
         guard size.height > 0 else { return }
 
         // An accessory app often has no key window, so NSScreen.main can be nil.
@@ -144,23 +148,18 @@ final class StatusController: NSObject {
 
     // MARK: Icon
 
-    /// Full-color gradient spark (not a template image, so macOS doesn't tint it black or white).
+    /// Wolkky, Wolkk's mascot, sized for the menu bar. Full color (not a template image).
     static let icon: NSImage = {
-        let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
-        guard let symbol = NSImage(systemSymbolName: "sparkle", accessibilityDescription: "Claude Status")?
-            .withSymbolConfiguration(config) else { return NSImage() }
-        let size = symbol.size
-        let image = NSImage(size: size, flipped: false) { rect in
-            let gradient = NSGradient(colors: [
-                NSColor(red: 0.00, green: 0.76, blue: 0.86, alpha: 1),
-                NSColor(red: 0.05, green: 0.45, blue: 0.95, alpha: 1),
-                NSColor(red: 0.45, green: 0.36, blue: 0.95, alpha: 1),
-            ])
-            gradient?.draw(in: rect, angle: -45)
-            symbol.draw(in: rect, from: .zero, operation: .destinationIn, fraction: 1)
+        let src = WolkkyImage.image
+        guard src.size.width > 0 else { return src }
+        let h: CGFloat = 15
+        let size = NSSize(width: (src.size.width / src.size.height * h).rounded(), height: h)
+        let img = NSImage(size: size, flipped: false) { rect in
+            src.draw(in: rect)
             return true
         }
-        image.isTemplate = false
-        return image
+        img.isTemplate = false
+        img.accessibilityDescription = "Wolkky Claude Status"
+        return img
     }()
 }

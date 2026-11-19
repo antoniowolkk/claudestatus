@@ -42,9 +42,9 @@ struct OnboardingView: View {
             }
             .padding(20)
         }
-        .frame(width: 560, height: 440)
+        .frame(width: 560, height: 500)
         .background(Theme.bg)
-        .font(.system(size: 13))
+        .font(Theme.mono(13))
         .toggleStyle(.switch)
     }
 
@@ -65,7 +65,7 @@ struct OnboardingView: View {
 
     private func title(_ t: String, _ sub: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(t).font(.system(size: 22, weight: .semibold)).foregroundStyle(Theme.ink)
+            Text(t).font(Theme.mono(19, .semibold)).foregroundStyle(Theme.ink)
             Text(sub).foregroundStyle(Theme.sub).fixedSize(horizontal: false, vertical: true)
         }
         .padding(.bottom, 14)
@@ -75,7 +75,12 @@ struct OnboardingView: View {
 
     private var welcome: some View {
         VStack(alignment: .leading, spacing: 12) {
-            title("Claude Status", L("A light menu bar readout for Claude Code: token usage in your 5-hour window, the model you're on, and which project folders Claude is working in."))
+            HStack(alignment: .top, spacing: 16) {
+                Image(nsImage: WolkkyImage.image)
+                    .resizable().interpolation(.high).scaledToFit()
+                    .frame(width: 76)
+                title("Wolkky Claude Status", L("A light menu bar readout for Claude Code: token usage in your 5-hour window, the model you're on, and which project folders Claude is working in."))
+            }
             feature("gauge.with.needle", L("Live token usage"), L("Session, today, 7 days and the current 5-hour window."))
             feature("folder", L("Projects at a glance"), L("The folder you're in now, plus every project active in the last 24 hours."))
             feature("lock.shield", L("Private by design"), L("Reads local logs only. No network, no keys, no telemetry."))
@@ -89,13 +94,13 @@ struct OnboardingView: View {
         let snap = store.snapshot
         let ok = snap.error == nil && snap.filesScanned > 0
         return VStack(alignment: .leading, spacing: 12) {
-            title(L("Check data access"), L("Claude Status reads Claude Code's session logs, read-only."))
+            title(L("Check data access"), L("Wolkky Claude Status reads Claude Code's session logs, read-only."))
             HUDCard(padding: 14) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
                         Image(systemName: ok ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
                             .foregroundStyle(ok ? Theme.live : Theme.amber)
-                        Text(ok ? L("Logs found") : L("No logs yet")).font(.system(size: 13, weight: .semibold))
+                        Text(ok ? L("Logs found") : L("No logs yet")).font(Theme.mono(13, .semibold))
                     }
                     Text(LogScanner.projectsDir).font(Theme.mono(11)).foregroundStyle(Theme.sub).textSelection(.enabled)
                     if ok {
@@ -103,7 +108,7 @@ struct OnboardingView: View {
                             .font(Theme.mono(11)).foregroundStyle(Theme.ink)
                     } else {
                         Text(snap.error?.message ?? L("Run a Claude Code session, then check again."))
-                            .font(.system(size: 12)).foregroundStyle(Theme.sub)
+                            .font(Theme.mono(12)).foregroundStyle(Theme.sub)
                     }
                 }
             }
@@ -115,7 +120,7 @@ struct OnboardingView: View {
 
     private var menuBar: some View {
         VStack(alignment: .leading, spacing: 12) {
-            title(L("Menu bar"), L("Claude Status lives in your menu bar as a single icon. Click it for the full panel; hover it for a quick summary."))
+            title(L("Menu bar"), L("Wolkky Claude Status lives in your menu bar as a single icon. Click it for the full panel; hover it for a quick summary."))
             HUDCard(padding: 14) {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 10) {
@@ -123,7 +128,7 @@ struct OnboardingView: View {
                             .padding(.horizontal, 10).padding(.vertical, 5)
                             .background(RoundedRectangle(cornerRadius: 6).fill(Theme.hair))
                         Text(L("Look for this icon at the top right of your screen."))
-                            .font(.system(size: 12)).foregroundStyle(Theme.sub)
+                            .font(Theme.mono(12)).foregroundStyle(Theme.sub)
                     }
                     Divider()
                     Toggle(L("Dark mode"), isOn: $darkMode)
@@ -134,7 +139,7 @@ struct OnboardingView: View {
                             login = LoginItem.isEnabled
                         }
                     if let loginError {
-                        Text(loginError).font(.system(size: 11)).foregroundStyle(Theme.danger)
+                        Text(loginError).font(Theme.mono(11)).foregroundStyle(Theme.danger)
                     }
                 }
             }
@@ -144,13 +149,13 @@ struct OnboardingView: View {
     private func feature(_ icon: String, _ head: String, _ body: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 15))
+                .font(Theme.mono(15))
                 .foregroundStyle(Theme.ring)
                 .frame(width: 28, height: 28)
                 .background(RoundedRectangle(cornerRadius: 7).fill(Theme.accent.opacity(0.07)))
             VStack(alignment: .leading, spacing: 2) {
-                Text(head).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.ink)
-                Text(body).font(.system(size: 12)).foregroundStyle(Theme.sub)
+                Text(head).font(Theme.mono(13, .semibold)).foregroundStyle(Theme.ink)
+                Text(body).font(Theme.mono(12)).foregroundStyle(Theme.sub)
             }
         }
     }

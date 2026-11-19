@@ -13,6 +13,7 @@ actor LogScanner {
 
     private var files: [String: FileState] = [:]
     private var entries: [String: UsageEntry] = [:]
+    private var tools: [String: ToolActivity] = [:]
     private let retention: TimeInterval = 8 * 24 * 3600
     private let maxLineBytes = 32 << 20
     private let chunkBytes = 4 << 20
@@ -40,7 +41,7 @@ actor LogScanner {
 
     func snapshot(now: Date = Date()) -> UsageSnapshot {
         let (count, error) = scan(now: now)
-        var snap = SnapshotBuilder.build(entries: Array(entries.values), now: now)
+        var snap = SnapshotBuilder.build(entries: Array(entries.values), tools: Array(tools.values), now: now)
         snap.filesScanned = count
         snap.error = error
         snap.updatedAt = now
@@ -83,6 +84,8 @@ actor LogScanner {
 
         files = files.filter { seen.contains($0.key) }
         entries = entries.filter { $0.value.time >= cutoff }
+        let toolCutoff = now.addingTimeInterval(-24 * 3600)
+        tools = tools.filter { $0.value.time >= toolCutoff }
         return (seen.count, nil)
     }
 
@@ -120,10 +123,15 @@ actor LogScanner {
 
     private static let usageMarker = Data("\"usage\"".utf8)
     private static let assistantMarker = Data("\"type\":\"assistant\"".utf8)
+    private static let resultMarker = Data("\"tool_result\"".utf8)
 
     private func parse(line: Data.SubSequence) {
-        guard line.range(of: Self.assistantMarker) != nil,
-              line.range(of: Self.usageMarker) != nil,
+        let isAssistant = line.range(of: Self.assistantMarker) != nil
+        if !isAssistant {
+            if line.range(of: Self.resultMarker) != nil { parseResults(line) }
+            return
+        }
+        guard line.range(of: Self.usageMarker) != nil,
               let obj = try? JSONSerialization.jsonObject(with: Data(line)) as? [String: Any],
               obj["type"] as? String == "assistant",
               let msg = obj["message"] as? [String: Any],
@@ -146,6 +154,7 @@ actor LogScanner {
             write1h = 0
         }
 
+        let cwd = obj["cwd"] as? String ?? ""
         let msgId = msg["id"] as? String ?? (obj["uuid"] as? String ?? UUID().uuidString)
         let key = msgId + "|" + (obj["requestId"] as? String ?? "")
         let entry = UsageEntry(
@@ -158,20 +167,85 @@ actor LogScanner {
             cacheWrite1h: write1h,
             cacheRead: int(usage, "cache_read_input_tokens"),
             sessionId: obj["sessionId"] as? String ?? "",
-            cwd: obj["cwd"] as? String ?? "",
+            cwd: cwd,
             branch: obj["gitBranch"] as? String ?? "",
             entrypoint: obj["entrypoint"] as? String ?? ""
         )
+
+        // Tool calls in this message. Kept as one-line summaries only.
+        if let content = msg["content"] as? [[String: Any]] {
+            for block in content where block["type"] as? String == "tool_use" {
+                guard let id = block["id"] as? String, tools[id] == nil,
+                      let name = block["name"] as? String, !ToolSummary.hidden(name) else { continue }
+                let (tool, detail) = ToolSummary.describe(name: name, input: block["input"] as? [String: Any] ?? [:])
+                tools[id] = ToolActivity(id: id, time: time, cwd: cwd, tool: tool, detail: detail, status: .running)
+            }
+        }
+
         // One response can be logged once per content block. Keep the most complete copy.
         if let old = entries[key], old.output > entry.output { return }
         entries[key] = entry
+    }
+
+    /// Marks tool calls finished when their results show up.
+    private func parseResults(_ line: Data.SubSequence) {
+        guard let obj = try? JSONSerialization.jsonObject(with: Data(line)) as? [String: Any],
+              obj["type"] as? String == "user",
+              let msg = obj["message"] as? [String: Any],
+              let content = msg["content"] as? [[String: Any]]
+        else { return }
+        for block in content where block["type"] as? String == "tool_result" {
+            guard let id = block["tool_use_id"] as? String, tools[id] != nil else { continue }
+            tools[id]?.status = (block["is_error"] as? Bool ?? false) ? .failed : .done
+        }
+    }
+}
+
+/// Turns a tool call into a short, single-line label.
+enum ToolSummary {
+    /// Bookkeeping tools that say nothing about the work itself.
+    private static let noise = ["update_plan", "wrap_up", "mark_chapter", "TodoWrite", "ToolSearch", "AskUserQuestion"]
+
+    static func hidden(_ name: String) -> Bool { noise.contains { name.hasSuffix($0) } }
+
+    static func describe(name: String, input: [String: Any]) -> (tool: String, detail: String) {
+        func str(_ k: String) -> String { (input[k] as? String) ?? "" }
+        func file(_ k: String) -> String { (str(k) as NSString).lastPathComponent }
+        switch name {
+        case "Bash":
+            return ("$", firstLine(str("command")))
+        case "Read", "Edit", "Write", "MultiEdit", "NotebookEdit":
+            return (name.lowercased(), file(input["file_path"] != nil ? "file_path" : "notebook_path"))
+        case "Grep", "Glob":
+            return (name.lowercased(), str("pattern"))
+        case "WebFetch":
+            return ("fetch", URL(string: str("url"))?.host ?? "")
+        case "WebSearch":
+            return ("search", str("query"))
+        case "Task", "Agent":
+            return ("agent", str("description"))
+        case "Skill":
+            return ("skill", str("skill"))
+        default:
+            if name.hasPrefix("mcp__") {
+                let short = name.split(separator: "_").last.map(String.init) ?? name
+                return ("mcp", short)
+            }
+            return (name.lowercased(), "")
+        }
+    }
+
+    private static func firstLine(_ s: String) -> String {
+        let line = s.split(separator: "\n", omittingEmptySubsequences: true).first.map(String.init) ?? s
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        return trimmed.count > 160 ? String(trimmed.prefix(159)) + "…" : trimmed
     }
 }
 
 enum SnapshotBuilder {
     static let blockLength: TimeInterval = 5 * 3600
 
-    static func build(entries: [UsageEntry], now: Date) -> UsageSnapshot {
+    static func build(entries: [UsageEntry], tools: [ToolActivity] = [], now: Date) -> UsageSnapshot {
         var snap = UsageSnapshot()
         let sorted = entries.sorted { $0.time < $1.time }
         guard let last = sorted.last else { return snap }
@@ -210,12 +284,12 @@ enum SnapshotBuilder {
             let end = s.addingTimeInterval(blockLength)
             snap.block = BlockInfo(start: s, end: end, totals: blockTotals, isActive: end > now)
         }
-        snap.projects = projects(sorted.filter { $0.time >= now.addingTimeInterval(-24 * 3600) && !$0.cwd.isEmpty })
+        snap.projects = projects(sorted.filter { $0.time >= now.addingTimeInterval(-24 * 3600) && !$0.cwd.isEmpty }, tools: tools)
         return snap
     }
 
     /// Groups entries by project. Subfolders and worktrees fold into their repo.
-    private static func projects(_ entries: [UsageEntry]) -> [ProjectActivity] {
+    private static func projects(_ entries: [UsageEntry], tools: [ToolActivity]) -> [ProjectActivity] {
         // Shortest roots first so a subfolder maps onto its parent project.
         let roots = Set(entries.map { ProjectPath.root($0.cwd) }).sorted { $0.count < $1.count }
         var canonical: [String: String] = [:]
@@ -237,11 +311,20 @@ enum SnapshotBuilder {
             if let w = ProjectPath.worktree(e.cwd) { worktrees[root, default: []].insert(w) }
             sessions[root, default: []].insert(e.sessionId)
         }
+        // Attach each tool call to the project its folder belongs to.
+        var toolsByRoot: [String: [ToolActivity]] = [:]
+        for t in tools where !t.cwd.isEmpty {
+            let r = ProjectPath.root(t.cwd)
+            let root = canonical[r] ?? roots.first { r == $0 || r.hasPrefix($0 + "/") } ?? r
+            toolsByRoot[root, default: []].append(t)
+        }
+
         return byRoot.values
             .map { p in
                 var p = p
                 p.worktrees = worktrees[p.root]?.count ?? 0
                 p.sessions = sessions[p.root]?.count ?? 0
+                p.activities = Array((toolsByRoot[p.root] ?? []).sorted { $0.time > $1.time }.prefix(8))
                 return p
             }
             .sorted { $0.lastActivity > $1.lastActivity }
