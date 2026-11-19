@@ -206,5 +206,12 @@ enum Strings {
         "talk to wolkk": ("mit wolkk sprechen", "wolkk に相談"),
         "services": ("leistungen", "サービス"),
         "about": ("über uns", "会社概要"),
+
+        // Wolkky moods
+        "watching your tokens": ("ich behalte deine Tokens im Blick", "トークンを見守り中"),
+        "on it…": ("bin dran …", "作業中…"),
+        "done!": ("fertig!", "完了！"),
+        "slow down, budget!": ("langsamer, Budget!", "予算に注意！"),
+        "zZ… wake me up": ("zZ … weck mich", "zZ… 起こしてね"),
     ]
 }

@@ -25,7 +25,7 @@ struct PanelView: View {
             content(now: tl.date)
         }
         .frame(width: Self.width)
-        .background(Theme.bg)
+        .hackerBackground()
         .appAppearance()
     }
 
@@ -54,20 +54,20 @@ struct PanelView: View {
     private func header(_ snap: UsageSnapshot, now: Date) -> some View {
         let last = snap.context?.lastActivity
         let live = last.map { now.timeIntervalSince($0) < 120 } ?? false
-        return HStack(spacing: 8) {
-            Image(nsImage: WolkkyImage.image)
-                .resizable().interpolation(.high).scaledToFit()
-                .frame(height: 16)
-            Text("WOLKKY // CLAUDE STATUS")
-                .font(Theme.label(10))
-                .tracking(1.6)
-                .foregroundStyle(Theme.ink)
-                .lineLimit(1)
-            Spacer(minLength: 6)
-            Text(live ? "● " + L("LIVE") : (last.map { "○ " + L("IDLE · %@", Fmt.ago($0, now: now)) } ?? "○ " + L("IDLE")))
-                .font(Theme.label(9))
-                .foregroundStyle(live ? Theme.live : Theme.faint)
-                .lineLimit(1)
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                GlitchText(text: "WOLKKY // CLAUDE STATUS", trigger: snap.updatedAt, auto: true)
+                    .font(Theme.label(10))
+                    .tracking(1.6)
+                    .foregroundStyle(Theme.ink)
+                    .lineLimit(1)
+                Spacer(minLength: 6)
+                Text(live ? "● LINK " + L("LIVE") : (last.map { "○ " + L("IDLE · %@", Fmt.ago($0, now: now)) } ?? "○ " + L("IDLE")))
+                    .font(Theme.label(9))
+                    .foregroundStyle(live ? Theme.live : Theme.faint)
+                    .lineLimit(1)
+            }
+            WolkkyASCII(animated: store.panelVisible)
         }
     }
 
@@ -89,7 +89,7 @@ struct PanelView: View {
             right = "—"
         }
 
-        return HUDCard(title: L("5-HOUR WINDOW"), padding: 12) {
+        return HUDCard(title: L("5-HOUR WINDOW"), tag: "SYS.USAGE", padding: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(Fmt.full(tokens))
@@ -109,17 +109,16 @@ struct PanelView: View {
                 }
                 Group {
                     if let b = block {
-                        Text("> " + (budget > 0 ? L("BUDGET") : Fmt.duration(b.end.timeIntervalSince(now)) + " " + L("LEFT").lowercased())
-                             + " · " + L("resets %@", b.end.formatted(date: .omitted, time: .shortened)))
+                        Text(">> T-" + Fmt.clock(b.end.timeIntervalSince(now)) + " · " + L("resets %@", b.end.formatted(date: .omitted, time: .shortened)))
                     } else {
-                        Text("> " + L("Starts with your next message"))
+                        Text(">> " + L("Starts with your next message"))
                     }
                 }
                 .font(Theme.mono(10))
                 .foregroundStyle(Theme.faint)
                 if let b = block {
                     let f = Forecast(tokens: tokens, block: b, budget: budget, now: now)
-                    Text("> " + f.text).font(Theme.mono(10)).foregroundStyle(f.warning ? Theme.danger : Theme.sub)
+                    Text(">> " + f.text).font(Theme.mono(10)).foregroundStyle(f.warning ? Theme.danger : Theme.sub)
                 }
             }
         }
@@ -128,7 +127,7 @@ struct PanelView: View {
     // MARK: Stats
 
     private func stats(_ snap: UsageSnapshot) -> some View {
-        HUDCard(padding: 0) {
+        HUDCard(tag: "SYS.STATS", padding: 0) {
             HStack(spacing: 0) {
                 stat(L("SESSION"), Fmt.compact(snap.session.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.session.cost))
                 divider
@@ -163,7 +162,7 @@ struct PanelView: View {
         let shown = Array(snap.projects.prefix(Self.maxProjects))
         let hidden = snap.projects.count - shown.count
         let current = snap.context.map { ProjectPath.root($0.cwd) }
-        return HUDCard(title: L("ACTIVE PROJECTS") + " · " + L("LAST 24H"), padding: 6) {
+        return HUDCard(title: L("ACTIVE PROJECTS") + " · " + L("LAST 24H"), tag: "NODES:\(snap.projects.count)", padding: 6) {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(shown.enumerated()), id: \.element.id) { i, p in
                     if i > 0 { dashedRule }
@@ -205,9 +204,13 @@ struct PanelView: View {
                         .font(Theme.mono(11)).foregroundStyle(Theme.accent)
                         .frame(width: 10, alignment: .leading)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text((isCurrent ? "> " : "") + p.name)
-                            .font(Theme.mono(12, isCurrent ? .semibold : .regular))
-                            .foregroundStyle(Theme.ink).lineLimit(1).truncationMode(.middle)
+                        HStack(spacing: 6) {
+                            Text((isCurrent ? "> " : "") + p.name)
+                                .font(Theme.mono(12, isCurrent ? .semibold : .regular))
+                                .foregroundStyle(Theme.ink).lineLimit(1).truncationMode(.middle)
+                            Text(Self.hexID(p.root))
+                                .font(Theme.mono(8)).foregroundStyle(Theme.faint)
+                        }
                         Text(detail)
                             .font(Theme.mono(9)).foregroundStyle(Theme.sub).lineLimit(1).truncationMode(.middle)
                     }
@@ -258,7 +261,7 @@ struct PanelView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(last ? "└" : "├").foregroundStyle(Theme.line)
                     Text(a.tool).foregroundStyle(Theme.accent)
-                    Text(a.detail.isEmpty ? "—" : a.detail)
+                    TypewriterText(text: a.detail.isEmpty ? "—" : a.detail, id: a.id)
                         .foregroundStyle(a.isRunning(now: now) ? Theme.ink : Theme.sub)
                         .lineLimit(1).truncationMode(.tail)
                     Spacer(minLength: 4)
@@ -270,6 +273,13 @@ struct PanelView: View {
             }
         }
         .padding(.leading, 22).padding(.trailing, 6).padding(.bottom, 8)
+    }
+
+    /// Short stable hex tag for a project, purely decorative: `#A3F1`.
+    static func hexID(_ s: String) -> String {
+        var h: UInt32 = 2166136261
+        for b in s.utf8 { h = (h ^ UInt32(b)) &* 16777619 }
+        return "#" + String(format: "%04X", h & 0xFFFF)
     }
 
     private static func branchText(_ branch: String) -> String {

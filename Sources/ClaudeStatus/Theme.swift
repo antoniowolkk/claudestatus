@@ -1,23 +1,24 @@
 import SwiftUI
 import AppKit
 
-/// Terminal-style (ASCII) palette. Light by default; dark when the user turns on Dark mode.
+/// Hacker-terminal palette: neon cyan on near-black (dark), teal on paper (light).
+/// Light by default; dark when the user turns on Dark mode.
 /// Every color adapts to the appearance of the view it's drawn in.
 enum Theme {
-    static let bg = adaptive(light: (0.975, 0.98, 0.99), dark: (0.045, 0.06, 0.09))
-    static let card = adaptive(light: (1, 1, 1), dark: (0.075, 0.095, 0.14))
-    static let ink = adaptive(light: (0.08, 0.10, 0.14), dark: (0.90, 0.93, 0.97))
-    static let sub = adaptive(light: (0.38, 0.42, 0.50), dark: (0.60, 0.65, 0.74))
-    static let faint = adaptive(light: (0.60, 0.64, 0.70), dark: (0.40, 0.45, 0.54))
-    static let line = adaptive(light: (0.70, 0.74, 0.80), dark: (0.24, 0.29, 0.38))
-    static let hair = adaptive(light: (0.08, 0.12, 0.22), dark: (0.55, 0.70, 1.0), lightAlpha: 0.09, darkAlpha: 0.12)
+    static let bg = adaptive(light: (0.94, 0.955, 0.95), dark: (0.035, 0.045, 0.05))
+    static let card = adaptive(light: (0.975, 0.985, 0.98), dark: (0.05, 0.068, 0.075))
+    static let ink = adaptive(light: (0.04, 0.10, 0.11), dark: (0.84, 0.98, 0.96))
+    static let sub = adaptive(light: (0.26, 0.38, 0.39), dark: (0.50, 0.68, 0.66))
+    static let faint = adaptive(light: (0.48, 0.57, 0.58), dark: (0.30, 0.42, 0.41))
+    static let line = adaptive(light: (0.70, 0.79, 0.79), dark: (0.11, 0.24, 0.24))
+    static let hair = adaptive(light: (0.0, 0.30, 0.30), dark: (0.0, 0.90, 0.83), lightAlpha: 0.10, darkAlpha: 0.12)
+    static let scan = adaptive(light: (0.0, 0.0, 0.0), dark: (0.0, 1.0, 0.9), lightAlpha: 0.025, darkAlpha: 0.035)
 
-    static let accent = adaptive(light: (0.05, 0.45, 0.95), dark: (0.25, 0.60, 1.0))
-    static let cyan = Color(red: 0.00, green: 0.76, blue: 0.86)
-    static let violet = adaptive(light: (0.45, 0.36, 0.95), dark: (0.60, 0.52, 1.0))
-    static let amber = Color(red: 0.88, green: 0.56, blue: 0.05)
-    static let danger = adaptive(light: (0.90, 0.22, 0.30), dark: (1.0, 0.40, 0.45))
-    static let live = adaptive(light: (0.10, 0.75, 0.45), dark: (0.20, 0.85, 0.55))
+    static let accent = adaptive(light: (0.0, 0.50, 0.50), dark: (0.0, 0.92, 0.84))
+    static let violet = adaptive(light: (0.68, 0.10, 0.58), dark: (1.0, 0.27, 0.86))
+    static let amber = adaptive(light: (0.70, 0.50, 0.0), dark: (1.0, 0.84, 0.16))
+    static let danger = adaptive(light: (0.82, 0.06, 0.32), dark: (1.0, 0.24, 0.45))
+    static let live = adaptive(light: (0.02, 0.56, 0.28), dark: (0.36, 1.0, 0.55))
 
     private typealias RGB = (Double, Double, Double)
 
@@ -29,11 +30,6 @@ enum Theme {
         })
     }
 
-    static let ring = AngularGradient(
-        colors: [cyan, accent, violet, cyan],
-        center: .center
-    )
-
     static func mono(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
         .system(size: size, weight: weight, design: .monospaced)
     }
@@ -43,34 +39,81 @@ enum Theme {
     }
 }
 
-
-/// ASCII box: sharp 1px border with an optional `[ TITLE ]` label set into the top edge.
-struct HUDCard<Content: View>: View {
-    var title: String? = nil
-    var padding: CGFloat = 12
-    @ViewBuilder var content: Content
+/// Faint horizontal scanlines, like an old monitor.
+struct Scanlines: View {
     var body: some View {
-        content
-            .padding(padding)
-            .padding(.top, title == nil ? 0 : 4)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.card)
-            .overlay(Rectangle().stroke(Theme.line, lineWidth: 1))
-            .overlay(alignment: .topLeading) {
-                if let title {
-                    Text("[ \(title) ]")
-                        .font(Theme.label(9))
-                        .foregroundStyle(Theme.accent)
-                        .padding(.horizontal, 2)
-                        .background(Theme.bg)
-                        .offset(x: 10, y: -7)
-                }
+        Canvas { ctx, size in
+            var p = Path()
+            var y: CGFloat = 0
+            while y < size.height {
+                p.addRect(CGRect(x: 0, y: y, width: size.width, height: 1))
+                y += 3
             }
-            .padding(.top, title == nil ? 0 : 7)
+            ctx.fill(p, with: .color(Theme.scan))
+        }
+        .allowsHitTesting(false)
     }
 }
 
-/// Text progress bar: `[██████████░░░░░░░░░░]`.
+extension View {
+    /// App background: theme color plus scanlines.
+    func hackerBackground() -> some View {
+        background(Theme.bg).overlay(Scanlines())
+    }
+}
+
+/// HUD box: sharp 1px border, a `// TITLE` label set into the top edge, an optional
+/// `[TAG]` on the right, and accent corner ticks.
+struct HUDCard<Content: View>: View {
+    var title: String? = nil
+    var tag: String? = nil
+    var padding: CGFloat = 12
+    @ViewBuilder var content: Content
+    var body: some View {
+        let hasHeader = title != nil || tag != nil
+        content
+            .padding(padding)
+            .padding(.top, hasHeader ? 4 : 0)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.card)
+            .overlay(Rectangle().stroke(Theme.line, lineWidth: 1))
+            .overlay(CornerTicks().stroke(Theme.accent, lineWidth: 1.5))
+            .overlay(alignment: .topLeading) {
+                if let title {
+                    Text("// " + title)
+                        .font(Theme.label(9))
+                        .foregroundStyle(Theme.accent)
+                        .padding(.horizontal, 3)
+                        .background(Theme.bg)
+                        .offset(x: 12, y: -7)
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                if let tag {
+                    Text("[" + tag + "]")
+                        .font(Theme.label(8))
+                        .foregroundStyle(Theme.faint)
+                        .padding(.horizontal, 3)
+                        .background(Theme.bg)
+                        .offset(x: -12, y: -6)
+                }
+            }
+            .padding(.top, hasHeader ? 7 : 0)
+    }
+}
+
+/// Short accent marks at the top-left and bottom-right corners.
+struct CornerTicks: Shape {
+    var length: CGFloat = 7
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: r.minX, y: r.minY + length)); p.addLine(to: CGPoint(x: r.minX, y: r.minY)); p.addLine(to: CGPoint(x: r.minX + length, y: r.minY))
+        p.move(to: CGPoint(x: r.maxX - length, y: r.maxY)); p.addLine(to: CGPoint(x: r.maxX, y: r.maxY)); p.addLine(to: CGPoint(x: r.maxX, y: r.maxY - length))
+        return p
+    }
+}
+
+/// Text progress bar: `▓▓▓▓▓▓░░░░░░`.
 struct AsciiBar: View {
     var progress: Double
     var cells = 26
@@ -79,10 +122,8 @@ struct AsciiBar: View {
     var body: some View {
         let p = max(0, min(progress, 1))
         let filled = Int((p * Double(cells)).rounded())
-        return (Text("[").foregroundColor(Theme.faint)
-            + Text(String(repeating: "█", count: filled)).foregroundColor(tint ?? (p >= 0.9 ? Theme.danger : Theme.accent))
-            + Text(String(repeating: "░", count: cells - filled)).foregroundColor(Theme.line)
-            + Text("]").foregroundColor(Theme.faint))
+        return (Text(String(repeating: "▓", count: filled)).foregroundColor(tint ?? (p >= 0.9 ? Theme.danger : Theme.accent))
+            + Text(String(repeating: "░", count: cells - filled)).foregroundColor(Theme.line))
             .font(Theme.mono(fontSize))
             .lineLimit(1)
             .fixedSize()

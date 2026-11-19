@@ -7,6 +7,11 @@ final class UsageStore: ObservableObject {
 
     @Published private(set) var snapshot = UsageSnapshot.empty
     @Published private(set) var isRefreshing = false
+    /// True while the panel is on screen; animations only run then.
+    @Published var panelVisible = false
+    /// Command lines that already typed themselves in.
+    var typed = Set<String>()
+
     /// Project rows open in the panel (by project root).
     @Published var expanded: Set<String> = []
 

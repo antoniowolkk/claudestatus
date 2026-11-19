@@ -5,7 +5,7 @@
 <h1 align="center">Wolkky Claude Status</h1>
 
 <p align="center">
-  A terminal-style macOS menu bar readout for <b>Claude Code</b>, starring Wolkky, Wolkk's mascot:<br>
+  A hacker-terminal macOS menu bar readout for <b>Claude Code</b>, starring Wolkky, Wolkk's mascot:<br>
   token usage, which project folders Claude is working in, and what it's running right now.
 </p>
 
@@ -33,10 +33,11 @@ Lives in your menu bar as Wolkky — no text, no wasted space. Hover for a quick
 - **Session, today, 7 days** — token totals and estimated cost, plus today's cache hit rate.
 - **Active projects** — every folder Claude worked in during the last 24 hours, newest first, with a live / active / idle dot, branch, worktree count and tokens. Claude Code worktrees and subfolders fold into their repo, so `AVIREO/.claude/worktrees/…` shows as **AVIREO**.
 - **What's running** — click a project to expand it and see Claude's latest commands there (`$ swift build`, `edit PanelView.swift`, `grep …`) with `run` / `ok` / `err` status.
-- **ASCII theme** — monospace text, boxed sections, tree lines and `[ button ]` controls.
+- **Hacker-terminal theme** — neon on near-black (or teal on paper in light mode), HUD boxes with `// TITLE` and `[SYS.USAGE]` tags, scanlines, a glitching header, commands that type themselves in, and `[ button ]` controls.
+- **ASCII Wolkky** — Wolkky lives at the top of the panel as ASCII art. It blinks, glances around and follows Claude's mood: typing dots while a command runs, happy when a task is done, sweating near your budget, `zZ` when idle. Hover to make it wiggle, click to make it jump and talk. It only animates while the panel is open, so it costs nothing in the background.
 - **Setup wizard** — a terminal installer and a first-run window that checks everything for you.
 - **English, Deutsch, 日本語** — pick a language in Settings, or let it follow your Mac. Switches live.
-- **Light or dark** — light by default, with a Dark mode switch in Settings. Your choice, not tied to the system setting.
+- **Light or dark** — light by default, with a Dark mode switch in Settings for the full neon look. Your choice, not tied to the system setting.
 - **Tiny** — native SwiftUI, about 1 MB, no Electron, no background services. Reads only new log lines after the first scan.
 - **Private** — no network, no API keys, no telemetry. Runs in the App Sandbox.
 
@@ -166,8 +167,9 @@ Sources/ClaudeStatus/
   PanelView.swift         menu bar panel
   SettingsView.swift      settings window
   OnboardingView.swift    first-run setup
-  Theme.swift             colors, ASCII boxes and progress bar
+  Theme.swift             hacker palette, HUD boxes, scanlines, progress bar
   WolkkyImage.swift       embedded Wolkky mascot (generated)
+  WolkkyASCII.swift       animated ASCII Wolkky, glitch and typewriter effects
   Strings.swift           English, German and Japanese text
   Appearance.swift        dark mode and live language switching
 Resources/                Info.plist, entitlements, icon

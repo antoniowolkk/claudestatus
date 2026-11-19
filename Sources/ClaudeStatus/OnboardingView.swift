@@ -43,7 +43,7 @@ struct OnboardingView: View {
             .padding(20)
         }
         .frame(width: 560, height: 500)
-        .background(Theme.bg)
+        .hackerBackground()
         .font(Theme.mono(13))
         .toggleStyle(.switch)
     }
@@ -53,7 +53,7 @@ struct OnboardingView: View {
             ForEach(steps.indices, id: \.self) { i in
                 VStack(alignment: .leading, spacing: 4) {
                     Capsule()
-                        .fill(i <= step ? AnyShapeStyle(Theme.ring) : AnyShapeStyle(Theme.hair))
+                        .fill(i <= step ? AnyShapeStyle(Theme.accent) : AnyShapeStyle(Theme.hair))
                         .frame(height: 3)
                     Text("\(String(format: "%02d", i + 1)) \(steps[i].uppercased())")
                         .font(Theme.label(9)).tracking(1.2)
@@ -76,9 +76,7 @@ struct OnboardingView: View {
     private var welcome: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 16) {
-                Image(nsImage: WolkkyImage.image)
-                    .resizable().interpolation(.high).scaledToFit()
-                    .frame(width: 76)
+                WolkkyASCII(animated: true, fontSize: 9, showsLine: false)
                 title("Wolkky Claude Status", L("A light menu bar readout for Claude Code: token usage in your 5-hour window, the model you're on, and which project folders Claude is working in."))
             }
             feature("gauge.with.needle", L("Live token usage"), L("Session, today, 7 days and the current 5-hour window."))
@@ -150,7 +148,7 @@ struct OnboardingView: View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
                 .font(Theme.mono(15))
-                .foregroundStyle(Theme.ring)
+                .foregroundStyle(Theme.accent)
                 .frame(width: 28, height: 28)
                 .background(RoundedRectangle(cornerRadius: 7).fill(Theme.accent.opacity(0.07)))
             VStack(alignment: .leading, spacing: 2) {

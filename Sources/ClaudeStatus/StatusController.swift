@@ -70,6 +70,7 @@ final class StatusController: NSObject {
         let panel = self.panel ?? makePanel()
         self.panel = panel
         fit(panel)
+        UsageStore.shared.panelVisible = true
         panel.orderFrontRegardless()
         panel.makeKey()
         item?.button?.highlight(true)
@@ -86,6 +87,7 @@ final class StatusController: NSObject {
 
     func close() {
         panel?.orderOut(nil)
+        UsageStore.shared.panelVisible = false
         item?.button?.highlight(false)
         if let m = clickMonitor { NSEvent.removeMonitor(m) }
         if let m = keyMonitor { NSEvent.removeMonitor(m) }
@@ -102,7 +104,7 @@ final class StatusController: NSObject {
                 .appAppearance()
                 .transaction { $0.animation = nil }
         )
-        measurer = NSHostingController(rootView: root)
+        measurer = NSHostingController(rootView: AnyView(root.environment(\.isMeasuring, true)))
         let view = NSHostingView(rootView: root)
         // The hosting view must never resize the window on its own: doing so while the
         // window lays out recurses until the stack overflows. We size it in fit(_:).

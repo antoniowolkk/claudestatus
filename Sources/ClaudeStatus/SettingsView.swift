@@ -38,7 +38,7 @@ struct SettingsView: View {
             }
         }
         .frame(width: 520, height: 460)
-        .background(Theme.bg)
+        .hackerBackground()
     }
 }
 

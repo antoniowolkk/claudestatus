@@ -34,6 +34,12 @@ enum Fmt {
         return L("<1m")
     }
 
+    /// Countdown as hh:mm, e.g. "03:19".
+    static func clock(_ seconds: TimeInterval) -> String {
+        let s = max(0, Int(seconds))
+        return String(format: "%02d:%02d", s / 3600, (s % 3600) / 60)
+    }
+
     static func ago(_ date: Date, now: Date = Date()) -> String {
         let s = Int(now.timeIntervalSince(date))
         if s < 10 { return L("just now") }
