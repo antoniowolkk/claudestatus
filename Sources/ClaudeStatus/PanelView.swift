@@ -59,7 +59,7 @@ struct PanelView: View {
             HStack(alignment: .center, spacing: 10) {
                 Image(nsImage: WolkkLogoImage.image)
                     .resizable().interpolation(.high).scaledToFit()
-                    .frame(height: 32)
+                    .frame(height: 20)
                     .help("Wolkk")
                 GlitchText(text: "// CLAUDE STATUS", trigger: snap.updatedAt, auto: true)
                     .font(Theme.mono(10, .semibold))
@@ -102,10 +102,9 @@ struct PanelView: View {
                         .lineLimit(1).minimumScaleFactor(0.6)
                     Text(includeCacheReads ? L("tokens incl. cache reads") : L("tokens"))
                         .font(Theme.sans(11)).foregroundStyle(Theme.sub)
-                    Spacer(minLength: 4)
-                    if let b = block {
-                        Text("≈" + Fmt.cost(b.totals.cost)).font(Theme.mono(11)).foregroundStyle(Theme.sub)
-                    }
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                        .layoutPriority(-1)
+                    Spacer(minLength: 0)
                 }
                 HStack(spacing: 8) {
                     AsciiBar(progress: progress, cells: 30)
@@ -118,8 +117,13 @@ struct PanelView: View {
                         .overlay(alignment: .leading) {
                             if f.warning { Rectangle().fill(Theme.danger).frame(width: 3) }
                         }
-                    Text("T-" + Fmt.clock(b.end.timeIntervalSince(now)) + "  ·  " + L("resets %@", b.end.formatted(date: .omitted, time: .shortened)))
-                        .font(Theme.mono(10)).foregroundStyle(Theme.faint)
+                    HStack(spacing: 0) {
+                        Text("T-" + Fmt.clock(b.end.timeIntervalSince(now)) + "  ·  " + L("resets %@", b.end.formatted(date: .omitted, time: .shortened)))
+                            .foregroundStyle(Theme.faint)
+                        Spacer(minLength: 6)
+                        Text("≈" + Fmt.cost(b.totals.cost)).foregroundStyle(Theme.sub)
+                    }
+                    .font(Theme.mono(10))
                 } else {
                     Text(L("Starts with your next message"))
                         .font(Theme.sans(10)).foregroundStyle(Theme.faint)

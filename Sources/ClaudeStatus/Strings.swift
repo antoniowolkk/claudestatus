@@ -213,5 +213,14 @@ enum Strings {
         "done!": ("fertig!", "完了！"),
         "slow down, budget!": ("langsamer, Budget!", "予算に注意！"),
         "zZ… wake me up": ("zZ … weck mich", "zZ… 起こしてね"),
+
+        // HUD profiler
+        "Quit": ("Beenden", "終了"),
+        "Running:": ("Läuft:", "実行中:"),
+        "Last:": ("Zuletzt:", "直近:"),
+        "Branch": ("Branch", "ブランチ"),
+        "Tokens (24h)": ("Tokens (24 Std.)", "トークン（24時間）"),
+        "Worktrees": ("Worktrees", "ワークツリー"),
+        "Context": ("Kontext", "コンテキスト"),
     ]
 }
