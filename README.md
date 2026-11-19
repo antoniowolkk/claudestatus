@@ -10,12 +10,19 @@
 </p>
 
 <p align="center">
+  Free and open source · Made by <a href="https://wolkk.com/?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status"><b>Wolkk</b></a>
+</p>
+
+<p align="center">
   <img src="docs/panel.png" width="320" alt="Wolkky Claude Status panel, light">
   &nbsp;
   <img src="docs/panel-dark.png" width="320" alt="Wolkky Claude Status panel, dark">
 </p>
 
 Lives in your menu bar as Wolkky — no text, no wasted space. Hover for a quick summary, click for the panel.
+
+> **Built something with Claude that now has to ship?**
+> [Wolkk](https://wolkk.com/?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status) turns AI-coded prototypes into production-ready software, and gives your team senior developers from Indonesia when you need more hands. [See how Wolkk works →](#about-wolkk)
 
 ## Features
 
@@ -72,11 +79,12 @@ scripts/build-app.sh --universal   # Apple silicon + Intel (needs full Xcode)
 
 ## Use
 
-Click the **✦** icon in the menu bar to open the panel (hover it for a one-line summary). From there:
+Click **Wolkky** in the menu bar to open the panel; hover for a one-line summary (tokens, model, project). Press Esc or click anywhere else to close it.
 
-- **↻** refreshes now (it also refreshes on its own every 20 seconds)
-- **⚙** opens Settings
-- **⏻** quits
+- `[ refresh ]` scans the logs now (it also refreshes on its own every 20 seconds)
+- `[ settings ]` opens Settings
+- `[ quit ]` quits
+- **powered by Wolkk** opens wolkk.com
 
 ### Settings
 
@@ -171,6 +179,29 @@ Developer helpers: `--dump` prints what the scanner found (finished turns, open 
 .build/release/ClaudeStatus --snapshot panel.png --demo
 ```
 
+## About Wolkk
+
+<img src="docs/wolkky.png" width="120" align="right" alt="Wolkky, Wolkk's mascot">
+
+**[Wolkk](https://wolkk.com/?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status)** is your gateway to senior software developers from Indonesia. Wolkky, the cloud in your menu bar, is Wolkk's mascot. We built this app because we use Claude Code every day, and we wanted to see what it's doing without switching windows.
+
+If you build with Claude Code, here's where Wolkk can help:
+
+| | |
+| --- | --- |
+| **Vibe Coding Support** | Your AI-coded prototype works on a good day? Wolkk fixes what's broken and turns it into production-ready software. |
+| **Dedicated teams** | Full-time senior developers who work only on your product, with your tools and your processes. |
+| **Hybrid teams** | Wolkk developers alongside your in-house team, scaling up or down as you need, with knowledge transfer built in. |
+| **Agile delivery** | Sprint-based development with continuous iteration. |
+| **Everything around the code** | Project management, systems architecture and analysis, UI/UX design, DevOps, maintenance, IT support and service desk. |
+
+Wolkk works with small and medium-sized companies, CTOs and founders in Europe and the US. Senior developers can start in about **4 weeks**, at up to **60% lower cost** than hiring locally (Wolkk's own figures).
+
+**[Talk to Wolkk →](https://wolkk.com/contact?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status)** &nbsp;·&nbsp; [Services](https://wolkk.com/services?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status) &nbsp;·&nbsp; [About](https://wolkk.com/about?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status) &nbsp;·&nbsp; [Blog](https://wolkk.com/blog?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status) &nbsp;·&nbsp; [Careers](https://wolkk.com/career?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status) &nbsp;·&nbsp; [Deutsch](https://wolkk.com/de?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status)
+
 ---
 
-Wolkky Claude Status is made by [Wolkk](https://wolkk.com). Wolkky is Wolkk's mascot. Not made by or affiliated with Anthropic.
+<p align="center">
+  Made with ☁ by <a href="https://wolkk.com/?utm_source=github&utm_medium=readme&utm_campaign=wolkky-claude-status">Wolkk</a> · Wolkky is Wolkk's mascot<br>
+  <sub>Not made by or affiliated with Anthropic. Claude Code is a product of Anthropic.</sub>
+</p>
