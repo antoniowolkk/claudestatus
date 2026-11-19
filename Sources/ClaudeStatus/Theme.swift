@@ -84,6 +84,8 @@ struct HUDCard<Content: View>: View {
     var title: String? = nil
     var tag: String? = nil
     var padding: CGFloat = 12
+    /// Stretch to the height offered (for boxes placed side by side).
+    var fillHeight = false
     @ViewBuilder var content: Content
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -108,7 +110,7 @@ struct HUDCard<Content: View>: View {
             }
             content
                 .padding(padding)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, maxHeight: fillHeight ? .infinity : nil, alignment: .topLeading)
                 .background(Theme.card)
                 .overlay(Rectangle().stroke(Theme.line, lineWidth: 1))
                 .overlay(CornerTicks().stroke(Theme.ink.opacity(0.85), lineWidth: 1.5))

@@ -14,9 +14,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/panel.png" width="320" alt="Wolkky Claude Status panel, light">
+  <img src="docs/panel.png" width="420" alt="Wolkky Claude Status panel, light">
   &nbsp;
-  <img src="docs/panel-dark.png" width="320" alt="Wolkky Claude Status panel, dark">
+  <img src="docs/panel-dark.png" width="420" alt="Wolkky Claude Status panel, dark">
 </p>
 
 Lives in your menu bar as Wolkky — no text, no wasted space. Hover for a quick summary, click for the panel.

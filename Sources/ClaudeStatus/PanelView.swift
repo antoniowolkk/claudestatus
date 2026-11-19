@@ -3,7 +3,7 @@ import AppKit
 
 /// The menu bar panel, styled as a surveillance HUD.
 struct PanelView: View {
-    static let width: CGFloat = 360
+    static let width: CGFloat = 540
 
     /// wolkk.com with campaign tags, so Wolkk can see visits that came from the app.
     /// The tags only name the app and the button; nothing about you is added.
@@ -41,8 +41,12 @@ struct PanelView: View {
                 messageBox(title: snap.updatedAt == nil ? L("Scanning logs") : L("No recent activity"),
                            body: L("Usage shows up here after your next Claude Code message."))
             } else {
-                window(snap, now: now)
-                stats(snap)
+                // 5-hour window on the left, 2×2 stats on the right, same height.
+                HStack(alignment: .top, spacing: 10) {
+                    window(snap, now: now)
+                    stats(snap).frame(width: 196)
+                }
+                .fixedSize(horizontal: false, vertical: true)
                 if !snap.projects.isEmpty { projects(snap, now: now) }
             }
             footer(snap, now: now)
@@ -93,7 +97,7 @@ struct PanelView: View {
             progress = 0
         }
 
-        return HUDCard(title: L("5-HOUR WINDOW"), tag: "SYS.USAGE", padding: 12) {
+        return HUDCard(title: L("5-HOUR WINDOW"), tag: "SYS.USAGE", padding: 12, fillHeight: true) {
             VStack(alignment: .leading, spacing: 7) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(Fmt.full(tokens))
@@ -135,18 +139,23 @@ struct PanelView: View {
     // MARK: Stats
 
     private func stats(_ snap: UsageSnapshot) -> some View {
-        HUDCard(padding: 0) {
-            HStack(spacing: 0) {
-                stat(L("SESSION"), Fmt.compact(snap.session.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.session.cost))
-                divider
-                stat(L("TODAY"), Fmt.compact(snap.today.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.today.cost))
-                divider
-                stat(L("7 DAYS"), Fmt.compact(snap.week.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.week.cost))
-                divider
-                stat(L("CACHE"), Fmt.percent(snap.today.cacheHitRate), L("hit today"))
+        HUDCard(title: L("STATS"), tag: "SYS.STATS", padding: 0, fillHeight: true) {
+            VStack(spacing: 0) {
+                HStack(spacing: 0) {
+                    stat(L("SESSION"), Fmt.compact(snap.session.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.session.cost))
+                    divider
+                    stat(L("TODAY"), Fmt.compact(snap.today.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.today.cost))
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                Rectangle().fill(Theme.line).frame(height: 1)
+                HStack(spacing: 0) {
+                    stat(L("7 DAYS"), Fmt.compact(snap.week.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.week.cost))
+                    divider
+                    stat(L("CACHE"), Fmt.percent(snap.today.cacheHitRate), L("hit today"))
+                }
+                // Dividers would otherwise stretch to any height offered when measuring the panel.
+                .fixedSize(horizontal: false, vertical: true)
             }
-            // Dividers would otherwise stretch to any height offered when measuring the panel.
-            .fixedSize(horizontal: false, vertical: true)
         }
     }
 

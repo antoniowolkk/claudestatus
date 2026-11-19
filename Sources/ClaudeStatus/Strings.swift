@@ -222,5 +222,7 @@ enum Strings {
         "Tokens (24h)": ("Tokens (24 Std.)", "トークン（24時間）"),
         "Worktrees": ("Worktrees", "ワークツリー"),
         "Context": ("Kontext", "コンテキスト"),
+
+        "STATS": ("STATISTIK", "統計"),
     ]
 }
