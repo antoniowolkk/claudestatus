@@ -192,5 +192,19 @@ enum Strings {
         "context": ("Kontext", "コンテキスト"),
         "Context almost full. Consider /compact.": ("Kontext fast voll. /compact empfohlen.", "コンテキストがほぼ満杯です。/compact を検討してください。"),
         "Context window use of the latest session.": ("Kontextnutzung der letzten Sitzung.", "最新セッションのコンテキスト使用量。"),
+
+        // Wolkk tab
+        "What is Wolkk": ("Was ist Wolkk", "Wolkk とは"),
+        "Wolkk connects companies with senior software developers from Indonesia.": ("Wolkk verbindet Unternehmen mit erfahrenen Softwareentwicklern aus Indonesien.", "Wolkk は、企業とインドネシアのシニアソフトウェア開発者をつなぎます。"),
+        "Founded 2022 · 50+ developers · clients in Europe, North America and Australia.": ("Gegründet 2022 · 50+ Entwickler · Kunden in Europa, Nordamerika und Australien.", "2022年設立 · 開発者50名以上 · ヨーロッパ、北米、オーストラリアのお客様。"),
+        "What Wolkk can do": ("Was Wolkk für dich tun kann", "Wolkk にできること"),
+        "Fix your AI-generated code: bug fixing, cleanup, production-ready software.": ("Repariert deinen KI-generierten Code: Fehlerbehebung, Aufräumen, produktionsreife Software.", "AI が生成したコードを修正：バグ修正、整理、本番運用できるソフトウェアへ。"),
+        "Senior developers who work only on your product. Ready within 4 weeks.": ("Erfahrene Entwickler, die nur an deinem Produkt arbeiten. Startklar in 4 Wochen.", "あなたの製品だけに取り組むシニア開発者。4週間以内に参加可能。"),
+        "Wolkk developers alongside your in-house team, with a 24/7 development cycle.": ("Wolkk-Entwickler an der Seite deines internen Teams, mit einem 24/7-Entwicklungszyklus.", "社内チームと Wolkk の開発者が協働し、24時間体制の開発サイクルを実現。"),
+        "Scrum masters, product owners and developers. Sprint-based delivery and rapid prototyping.": ("Scrum Master, Product Owner und Entwickler. Lieferung in Sprints und schnelles Prototyping.", "スクラムマスター、プロダクトオーナー、開発者。スプリント単位の開発とラピッドプロトタイピング。"),
+        "Up to 60% lower cost (Wolkk's figure).": ("Bis zu 60 % niedrigere Kosten (Angabe von Wolkk).", "最大60%のコスト削減（Wolkk 公表値）。"),
+        "talk to wolkk": ("mit wolkk sprechen", "wolkk に相談"),
+        "services": ("leistungen", "サービス"),
+        "about": ("über uns", "会社概要"),
     ]
 }

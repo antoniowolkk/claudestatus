@@ -77,7 +77,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 @MainActor
 enum Snapshotter {
     static func render(to path: String) {
-        let view = PanelView()
+        let view = Group {
+            if CommandLine.arguments.contains("--wolkk-tab") {
+                WolkkSettings().padding(20).frame(width: 520).background(Theme.bg)
+            } else {
+                PanelView()
+            }
+        }
             .environmentObject(UsageStore.shared)
             .appAppearance()
         let renderer = ImageRenderer(content: view)

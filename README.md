@@ -93,6 +93,7 @@ Click **Wolkky** in the menu bar to open the panel; hover for a one-line summary
 | General | Dark mode, language, notifications, counting cache reads, a 5-hour token budget, refresh rate, open at login, rerun setup |
 | Privacy | What the app reads and never does, and a shortcut to the logs folder |
 | About | Version, Wolkky, Wolkk website and source code |
+| Wolkk | What Wolkk is and what it can do for you: Vibe Coding Support, dedicated and hybrid teams, agile development, with links to contact Wolkk |
 
 ### Active projects
 

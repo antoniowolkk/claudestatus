@@ -6,8 +6,8 @@ struct PanelView: View {
     static let width: CGFloat = 360
     /// wolkk.com with campaign tags, so Wolkk can see visits that came from the app.
     /// The tags only name the app and the button; nothing about you is added.
-    static func wolkkURL(from placement: String) -> URL {
-        var c = URLComponents(string: "https://wolkk.com/")!
+    static func wolkkURL(_ path: String = "", from placement: String) -> URL {
+        var c = URLComponents(string: "https://wolkk.com/" + path)!
         c.queryItems = [
             URLQueryItem(name: "utm_source", value: "wolkky-claude-status"),
             URLQueryItem(name: "utm_medium", value: "app"),

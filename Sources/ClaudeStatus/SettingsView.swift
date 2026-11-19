@@ -14,10 +14,11 @@ struct SettingsView: View {
                     Text(L("General")).tag(0)
                     Text(L("Privacy")).tag(1)
                     Text(L("About")).tag(2)
+                    Text("Wolkk").tag(3)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-                .frame(width: 300)
+                .frame(width: 360)
             }
             .padding(.horizontal, 20)
             .padding(.top, 34)
@@ -28,7 +29,8 @@ struct SettingsView: View {
                     switch tab {
                     case 0: GeneralSettings()
                     case 1: PrivacySettings()
-                    default: AboutSettings()
+                    case 2: AboutSettings()
+                    default: WolkkSettings()
                     }
                 }
                 .padding(.horizontal, 20)
@@ -195,6 +197,62 @@ private struct AboutSettings: View {
             }
             Text(L("Not affiliated with Anthropic."))
                 .font(Theme.mono(10)).foregroundStyle(Theme.faint)
+        }
+        .font(Theme.mono(12))
+    }
+}
+
+/// What Wolkk is and what it can do, from wolkk.com.
+struct WolkkSettings: View {
+    private let services: [(name: String, text: String)] = [
+        ("Vibe Coding Support", "Fix your AI-generated code: bug fixing, cleanup, production-ready software."),
+        ("Dedicated Teams", "Senior developers who work only on your product. Ready within 4 weeks."),
+        ("Hybrid Teams", "Wolkk developers alongside your in-house team, with a 24/7 development cycle."),
+        ("Agile Development", "Scrum masters, product owners and developers. Sprint-based delivery and rapid prototyping."),
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Section(title: L("What is Wolkk")) {
+                HStack(alignment: .top, spacing: 14) {
+                    Image(nsImage: WolkkyImage.image)
+                        .resizable().interpolation(.high).scaledToFit()
+                        .frame(width: 64)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(L("Wolkk connects companies with senior software developers from Indonesia."))
+                            .foregroundStyle(Theme.ink)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(L("Founded 2022 · 50+ developers · clients in Europe, North America and Australia."))
+                            .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+            Section(title: L("What Wolkk can do")) {
+                ForEach(services, id: \.name) { s in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("> " + L(s.name)).font(Theme.mono(12, .semibold)).foregroundStyle(Theme.accent)
+                        Text(L(s.text))
+                            .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.leading, 16)
+                    }
+                }
+                Text(L("Up to 60% lower cost (Wolkk's figure)."))
+                    .font(Theme.mono(11)).foregroundStyle(Theme.ink)
+                    .padding(.top, 2)
+            }
+            HStack(spacing: 8) {
+                AsciiButton(label: L("talk to wolkk")) {
+                    NSWorkspace.shared.open(PanelView.wolkkURL("contact", from: "settings-wolkk-contact"))
+                }
+                AsciiButton(label: L("services")) {
+                    NSWorkspace.shared.open(PanelView.wolkkURL("services", from: "settings-wolkk-services"))
+                }
+                AsciiButton(label: L("about")) {
+                    NSWorkspace.shared.open(PanelView.wolkkURL("about", from: "settings-wolkk-about"))
+                }
+            }
         }
         .font(Theme.mono(12))
     }
