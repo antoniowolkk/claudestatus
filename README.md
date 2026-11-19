@@ -5,7 +5,7 @@
 <h1 align="center">Wolkky Claude Status</h1>
 
 <p align="center">
-  A hacker-terminal macOS menu bar readout for <b>Claude Code</b>, starring Wolkky, Wolkk's mascot:<br>
+  A surveillance-HUD style macOS menu bar readout for <b>Claude Code</b>, starring Wolkky, Wolkk's mascot:<br>
   token usage, which project folders Claude is working in, and what it's running right now.
 </p>
 
@@ -33,7 +33,7 @@ Lives in your menu bar as Wolkky — no text, no wasted space. Hover for a quick
 - **Session, today, 7 days** — token totals and estimated cost, plus today's cache hit rate.
 - **Active projects** — every folder Claude worked in during the last 24 hours, newest first, with a live / active / idle dot, branch, worktree count and tokens. Claude Code worktrees and subfolders fold into their repo, so `AVIREO/.claude/worktrees/…` shows as **AVIREO**.
 - **What's running** — click a project to expand it and see Claude's latest commands there (`$ swift build`, `edit PanelView.swift`, `grep …`) with `run` / `ok` / `err` status.
-- **Hacker-terminal theme** — neon on near-black (or teal on paper in light mode), HUD boxes with `// TITLE` and `[SYS.USAGE]` tags, scanlines, a glitching header, commands that type themselves in, and `[ button ]` controls.
+- **HUD theme** — inspired by open-world hacking games: white on near-black with a sky-blue accent, panels with title tabs and corner ticks, segmented meters, a dot texture, a glitching header and commands that type themselves in. Expand a project to see a **profiler card**: a blue name bar, a white bar with the command that's running, and detail bars for branch, tokens, worktrees and context. Original design: no game logos, icons or fonts are used; the logo is Wolkk's.
 - **ASCII Wolkky** — Wolkky lives at the top of the panel as ASCII art. It blinks, glances around and follows Claude's mood: typing dots while a command runs, happy when a task is done, sweating near your budget, `zZ` when idle. Hover to make it wiggle, click to make it jump and talk. It only animates while the panel is open, so it costs nothing in the background.
 - **Setup wizard** — a terminal installer and a first-run window that checks everything for you.
 - **English, Deutsch, 日本語** — pick a language in Settings, or let it follow your Mac. Switches live.
@@ -82,9 +82,11 @@ scripts/build-app.sh --universal   # Apple silicon + Intel (needs full Xcode)
 
 Click **Wolkky** in the menu bar to open the panel; hover for a one-line summary (tokens, model, project). Press Esc or click anywhere else to close it.
 
-- `[ refresh ]` scans the logs now (it also refreshes on its own every 20 seconds)
-- `[ settings ]` opens Settings
-- `[ quit ]` quits
+- **R** / `Refresh` scans the logs now (it also refreshes on its own every 20 seconds)
+- **S** / `Settings` opens Settings
+- **Q** / `Quit` quits
+
+The keys work while the panel is open. If the panel is taller than your screen, scroll it.
 - **powered by Wolkk** opens wolkk.com
 
 ### Settings
@@ -167,13 +169,14 @@ Sources/ClaudeStatus/
   PanelView.swift         menu bar panel
   SettingsView.swift      settings window
   OnboardingView.swift    first-run setup
-  Theme.swift             hacker palette, HUD boxes, scanlines, progress bar
+  Theme.swift             HUD palette, panels, dot texture, meters, highlight bars
   WolkkyImage.swift       embedded Wolkky mascot (generated)
+  WolkkLogoImage.swift    embedded Wolkk logo (generated)
   WolkkyASCII.swift       animated ASCII Wolkky, glitch and typewriter effects
   Strings.swift           English, German and Japanese text
   Appearance.swift        dark mode and live language switching
 Resources/                Info.plist, entitlements, icon
-scripts/                  build-app.sh, make-icon.swift, prepare-mascot.swift
+scripts/                  build-app.sh, make-icon.swift, prepare-image.swift (mascot and logo)
 install.sh / uninstall.sh
 ```
 

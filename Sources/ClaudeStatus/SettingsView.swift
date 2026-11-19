@@ -69,14 +69,14 @@ private struct GeneralSettings: View {
                 Toggle(L("Dark mode"), isOn: $darkMode)
                     .onChange(of: darkMode) { AppAppearance.apply() }
                 Text(L("Off keeps the app light, whatever your Mac is set to."))
-                    .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                    .font(Theme.sans(11)).foregroundStyle(Theme.sub)
                 LanguagePicker()
                     .frame(maxWidth: 280)
             }
             Section(title: L("Usage")) {
                 Toggle(L("Count cache reads as tokens"), isOn: $includeCacheReads)
                 Text(L("Cache reads are cheap and can be very large. Off shows input, output and cache writes."))
-                    .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                    .font(Theme.sans(11)).foregroundStyle(Theme.sub)
                 HStack {
                     Text(L("5-hour token budget"))
                     Spacer()
@@ -85,12 +85,12 @@ private struct GeneralSettings: View {
                         .multilineTextAlignment(.trailing)
                 }
                 Text(L("Set a budget to show the bar as % used. 0 shows time elapsed instead."))
-                    .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                    .font(Theme.sans(11)).foregroundStyle(Theme.sub)
                 let peak = store.snapshot.peakBlock.tokens(includeCacheReads: includeCacheReads)
                 if peak > 0 {
                     HStack(spacing: 8) {
                         Text(L("Busiest 5-hour window this week: %@", Fmt.compact(peak)))
-                            .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                            .font(Theme.sans(11)).foregroundStyle(Theme.sub)
                         AsciiButton(label: L("use")) { budget = peak }
                     }
                 }
@@ -108,7 +108,7 @@ private struct GeneralSettings: View {
                 Toggle(L("At 80%, 90% and 100% of my 5-hour budget"), isOn: $notifyLimit)
                 Toggle(L("Only when I'm in another app"), isOn: $notifyOnlyAway)
                 Text(L("Clicking a notification opens the panel. You can change alerts in System Settings › Notifications."))
-                    .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                    .font(Theme.sans(11)).foregroundStyle(Theme.sub)
             }
             .onChange(of: notifyDone) { if Notifier.shared.anyEnabled { Notifier.shared.requestAuthorization() } }
             .onChange(of: notifyQuestion) { if Notifier.shared.anyEnabled { Notifier.shared.requestAuthorization() } }
@@ -120,14 +120,14 @@ private struct GeneralSettings: View {
                         login = LoginItem.isEnabled
                     }
                 if let loginError {
-                    Text(loginError).font(Theme.mono(11)).foregroundStyle(Theme.danger)
+                    Text(loginError).font(Theme.sans(11)).foregroundStyle(Theme.danger)
                 }
                 Button(L("Run setup again")) { WindowManager.shared.showOnboarding() }
             }
         }
         .toggleStyle(.switch)
         .controlSize(.small)
-        .font(Theme.mono(12))
+        .font(Theme.sans(12))
     }
 }
 
@@ -149,10 +149,10 @@ private struct PrivacySettings: View {
                 }
                 Spacer()
                 Text(L("Cost is an estimate from public API prices."))
-                    .font(Theme.mono(10)).foregroundStyle(Theme.faint)
+                    .font(Theme.sans(10)).foregroundStyle(Theme.faint)
             }
         }
-        .font(Theme.mono(12))
+        .font(Theme.sans(12))
     }
 
     private func bullet(_ icon: String, _ text: String) -> some View {
@@ -179,11 +179,11 @@ private struct AboutSettings: View {
                         .frame(width: 96)
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Wolkky Claude Status")
-                            .font(Theme.mono(15, .semibold)).foregroundStyle(Theme.ink)
+                            .font(Theme.sans(15, .semibold)).foregroundStyle(Theme.ink)
                         Text(L("Version %@", version))
-                            .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                            .font(Theme.sans(11)).foregroundStyle(Theme.sub)
                         Text(L("Wolkky is Wolkk's mascot."))
-                            .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                            .font(Theme.sans(11)).foregroundStyle(Theme.sub)
                     }
                 }
             }
@@ -196,9 +196,9 @@ private struct AboutSettings: View {
                 }
             }
             Text(L("Not affiliated with Anthropic."))
-                .font(Theme.mono(10)).foregroundStyle(Theme.faint)
+                .font(Theme.sans(10)).foregroundStyle(Theme.faint)
         }
-        .font(Theme.mono(12))
+        .font(Theme.sans(12))
     }
 }
 
@@ -215,15 +215,15 @@ struct WolkkSettings: View {
         VStack(alignment: .leading, spacing: 16) {
             Section(title: L("What is Wolkk")) {
                 HStack(alignment: .top, spacing: 14) {
-                    Image(nsImage: WolkkyImage.image)
+                    Image(nsImage: WolkkLogoImage.image)
                         .resizable().interpolation(.high).scaledToFit()
-                        .frame(width: 64)
+                        .frame(width: 96)
                     VStack(alignment: .leading, spacing: 6) {
                         Text(L("Wolkk connects companies with senior software developers from Indonesia."))
                             .foregroundStyle(Theme.ink)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(L("Founded 2022 · 50+ developers · clients in Europe, North America and Australia."))
-                            .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                            .font(Theme.sans(11)).foregroundStyle(Theme.sub)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -231,15 +231,15 @@ struct WolkkSettings: View {
             Section(title: L("What Wolkk can do")) {
                 ForEach(services, id: \.name) { s in
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("> " + L(s.name)).font(Theme.mono(12, .semibold)).foregroundStyle(Theme.accent)
+                        Text("⬡ " + L(s.name)).font(Theme.sans(12, .semibold)).foregroundStyle(Theme.accent)
                         Text(L(s.text))
-                            .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                            .font(Theme.sans(11)).foregroundStyle(Theme.sub)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.leading, 16)
                     }
                 }
                 Text(L("Up to 60% lower cost (Wolkk's figure)."))
-                    .font(Theme.mono(11)).foregroundStyle(Theme.ink)
+                    .font(Theme.sans(11)).foregroundStyle(Theme.ink)
                     .padding(.top, 2)
             }
             HStack(spacing: 8) {
@@ -254,6 +254,6 @@ struct WolkkSettings: View {
                 }
             }
         }
-        .font(Theme.mono(12))
+        .font(Theme.sans(12))
     }
 }

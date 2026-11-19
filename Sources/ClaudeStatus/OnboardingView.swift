@@ -44,7 +44,7 @@ struct OnboardingView: View {
         }
         .frame(width: 560, height: 500)
         .hackerBackground()
-        .font(Theme.mono(13))
+        .font(Theme.sans(13))
         .toggleStyle(.switch)
     }
 
@@ -65,7 +65,7 @@ struct OnboardingView: View {
 
     private func title(_ t: String, _ sub: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(t).font(Theme.mono(19, .semibold)).foregroundStyle(Theme.ink)
+            Text(t).font(Theme.sans(20, .bold)).foregroundStyle(Theme.ink)
             Text(sub).foregroundStyle(Theme.sub).fixedSize(horizontal: false, vertical: true)
         }
         .padding(.bottom, 14)
@@ -98,15 +98,15 @@ struct OnboardingView: View {
                     HStack(spacing: 8) {
                         Image(systemName: ok ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
                             .foregroundStyle(ok ? Theme.live : Theme.amber)
-                        Text(ok ? L("Logs found") : L("No logs yet")).font(Theme.mono(13, .semibold))
+                        Text(ok ? L("Logs found") : L("No logs yet")).font(Theme.sans(13, .semibold))
                     }
-                    Text(LogScanner.projectsDir).font(Theme.mono(11)).foregroundStyle(Theme.sub).textSelection(.enabled)
+                    Text(LogScanner.projectsDir).font(Theme.sans(11)).foregroundStyle(Theme.sub).textSelection(.enabled)
                     if ok {
                         Text(L("%d recent session files · %@ tokens in the last 7 days", snap.filesScanned, Fmt.compact(snap.week.tokens(includeCacheReads: false))))
-                            .font(Theme.mono(11)).foregroundStyle(Theme.ink)
+                            .font(Theme.sans(11)).foregroundStyle(Theme.ink)
                     } else {
                         Text(snap.error?.message ?? L("Run a Claude Code session, then check again."))
-                            .font(Theme.mono(12)).foregroundStyle(Theme.sub)
+                            .font(Theme.sans(12)).foregroundStyle(Theme.sub)
                     }
                 }
             }
@@ -126,7 +126,7 @@ struct OnboardingView: View {
                             .padding(.horizontal, 10).padding(.vertical, 5)
                             .background(RoundedRectangle(cornerRadius: 6).fill(Theme.hair))
                         Text(L("Look for this icon at the top right of your screen."))
-                            .font(Theme.mono(12)).foregroundStyle(Theme.sub)
+                            .font(Theme.sans(12)).foregroundStyle(Theme.sub)
                     }
                     Divider()
                     Toggle(L("Dark mode"), isOn: $darkMode)
@@ -137,7 +137,7 @@ struct OnboardingView: View {
                             login = LoginItem.isEnabled
                         }
                     if let loginError {
-                        Text(loginError).font(Theme.mono(11)).foregroundStyle(Theme.danger)
+                        Text(loginError).font(Theme.sans(11)).foregroundStyle(Theme.danger)
                     }
                 }
             }
@@ -147,13 +147,13 @@ struct OnboardingView: View {
     private func feature(_ icon: String, _ head: String, _ body: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
-                .font(Theme.mono(15))
+                .font(Theme.sans(15))
                 .foregroundStyle(Theme.accent)
                 .frame(width: 28, height: 28)
                 .background(RoundedRectangle(cornerRadius: 7).fill(Theme.accent.opacity(0.07)))
             VStack(alignment: .leading, spacing: 2) {
-                Text(head).font(Theme.mono(13, .semibold)).foregroundStyle(Theme.ink)
-                Text(body).font(Theme.mono(12)).foregroundStyle(Theme.sub)
+                Text(head).font(Theme.sans(13, .semibold)).foregroundStyle(Theme.ink)
+                Text(body).font(Theme.sans(12)).foregroundStyle(Theme.sub)
             }
         }
     }

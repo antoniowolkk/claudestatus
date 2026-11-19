@@ -156,10 +156,17 @@ struct WolkkyASCII: View {
             .help("Wolkky")
 
             if showsLine {
-                Text("> " + (said ?? mood.line))
-                    .font(Theme.mono(9))
-                    .foregroundStyle(said != nil ? Theme.violet : Theme.sub)
-                    .lineLimit(1)
+                // Objective-style chip: hexagon icon + line
+                HStack(spacing: 6) {
+                    HexMark(color: said != nil ? Theme.violet : Theme.ink, size: 11)
+                    Text(said ?? mood.line)
+                        .font(Theme.sans(11, .medium))
+                        .foregroundStyle(said != nil ? Theme.violet : Theme.ink)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 8).padding(.vertical, 4)
+                .background(Theme.card)
+                .overlay(alignment: .bottom) { Rectangle().fill(Theme.ink.opacity(0.6)).frame(height: 1) }
             }
         }
         .accessibilityElement(children: .ignore)

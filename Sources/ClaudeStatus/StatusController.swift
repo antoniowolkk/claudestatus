@@ -80,7 +80,14 @@ final class StatusController: NSObject {
         }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] e in
             if e.keyCode == 53 { self?.close(); return nil } // Esc
-            return e
+            // Key hints shown in the panel footer: R refresh, S settings, Q quit.
+            guard e.modifierFlags.intersection([.command, .control, .option]).isEmpty else { return e }
+            switch e.charactersIgnoringModifiers?.lowercased() {
+            case "r": Task { await UsageStore.shared.refresh() }; return nil
+            case "s": self?.close(); WindowManager.shared.showSettings(); return nil
+            case "q": NSApp.terminate(nil); return nil
+            default: return e
+            }
         }
         Task { await UsageStore.shared.refresh() }
     }
@@ -96,15 +103,21 @@ final class StatusController: NSObject {
     }
 
     private func makePanel() -> StatusPanel {
+        let content = PanelView()
+            .environmentObject(UsageStore.shared)
+            .appAppearance()
+            .transaction { $0.animation = nil }
+        // Measured without a scroll view to get the natural height…
+        measurer = NSHostingController(rootView: AnyView(content.environment(\.isMeasuring, true)))
+        // …shown inside one, so a panel taller than the screen scrolls instead of being cut off.
         let root = AnyView(
-            PanelView()
-                .environmentObject(UsageStore.shared)
+            ScrollView(.vertical) { content }
+                .scrollIndicators(.never)
+                .background(Theme.bg)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.hair, lineWidth: 0.5))
                 .appAppearance()
-                .transaction { $0.animation = nil }
         )
-        measurer = NSHostingController(rootView: AnyView(root.environment(\.isMeasuring, true)))
         let view = NSHostingView(rootView: root)
         // The hosting view must never resize the window on its own: doing so while the
         // window lays out recurses until the stack overflows. We size it in fit(_:).
@@ -130,12 +143,13 @@ final class StatusController: NSObject {
     private func fit(_ panel: NSPanel) {
         guard let measurer else { return }
         let fitted = measurer.sizeThatFits(in: NSSize(width: PanelView.width, height: 4000))
-        let size = NSSize(width: PanelView.width, height: ceil(fitted.height))
-        guard size.height > 0 else { return }
-
         // An accessory app often has no key window, so NSScreen.main can be nil.
         let screen = item?.button?.window?.screen ?? NSScreen.main ?? NSScreen.screens.first
         let visible = screen?.visibleFrame ?? .zero
+        // Never taller than the screen; the scroll view takes the rest.
+        let maxHeight = visible.height > 0 ? visible.height - 12 : 4000
+        let size = NSSize(width: PanelView.width, height: min(ceil(fitted.height), maxHeight))
+        guard size.height > 0 else { return }
         // Default: top-right, just under the menu bar.
         var origin = NSPoint(x: visible.maxX - size.width - 8, y: visible.maxY - size.height - 6)
         if let button = item?.button, let bw = button.window, bw.frame.width > 0 {

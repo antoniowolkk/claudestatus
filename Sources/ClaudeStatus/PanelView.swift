@@ -1,9 +1,10 @@
 import SwiftUI
 import AppKit
 
-/// The menu bar panel, in a terminal / ASCII style.
+/// The menu bar panel, styled as a surveillance HUD.
 struct PanelView: View {
     static let width: CGFloat = 360
+
     /// wolkk.com with campaign tags, so Wolkk can see visits that came from the app.
     /// The tags only name the app and the button; nothing about you is added.
     static func wolkkURL(_ path: String = "", from placement: String) -> URL {
@@ -54,18 +55,25 @@ struct PanelView: View {
     private func header(_ snap: UsageSnapshot, now: Date) -> some View {
         let last = snap.context?.lastActivity
         let live = last.map { now.timeIntervalSince($0) < 120 } ?? false
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                GlitchText(text: "WOLKKY // CLAUDE STATUS", trigger: snap.updatedAt, auto: true)
-                    .font(Theme.label(10))
-                    .tracking(1.6)
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 10) {
+                Image(nsImage: WolkkLogoImage.image)
+                    .resizable().interpolation(.high).scaledToFit()
+                    .frame(height: 32)
+                    .help("Wolkk")
+                GlitchText(text: "// CLAUDE STATUS", trigger: snap.updatedAt, auto: true)
+                    .font(Theme.mono(10, .semibold))
+                    .tracking(1.4)
                     .foregroundStyle(Theme.ink)
                     .lineLimit(1)
                 Spacer(minLength: 6)
-                Text(live ? "● LINK " + L("LIVE") : (last.map { "○ " + L("IDLE · %@", Fmt.ago($0, now: now)) } ?? "○ " + L("IDLE")))
-                    .font(Theme.label(9))
-                    .foregroundStyle(live ? Theme.live : Theme.faint)
-                    .lineLimit(1)
+                HStack(spacing: 4) {
+                    HexMark(color: live ? Theme.live : Theme.faint, filled: live, size: 9)
+                    Text(live ? L("LIVE") : (last.map { L("IDLE · %@", Fmt.ago($0, now: now)) } ?? L("IDLE")))
+                        .font(Theme.label(9))
+                        .foregroundStyle(live ? Theme.live : Theme.faint)
+                        .lineLimit(1)
+                }
             }
             WolkkyASCII(animated: store.panelVisible)
         }
@@ -77,48 +85,44 @@ struct PanelView: View {
         let block = snap.block.flatMap { $0.isActive ? $0 : nil }
         let tokens = block?.totals.tokens(includeCacheReads: includeCacheReads) ?? 0
         let progress: Double
-        let right: String
         if budget > 0 {
             progress = Double(tokens) / Double(budget)
-            right = Fmt.percent(progress)
         } else if let b = block {
             progress = now.timeIntervalSince(b.start) / SnapshotBuilder.blockLength
-            right = Fmt.percent(progress)
         } else {
             progress = 0
-            right = "—"
         }
 
         return HUDCard(title: L("5-HOUR WINDOW"), tag: "SYS.USAGE", padding: 12) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 7) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(Fmt.full(tokens))
                         .font(Theme.mono(24, .semibold))
                         .foregroundStyle(Theme.ink)
                         .lineLimit(1).minimumScaleFactor(0.6)
                     Text(includeCacheReads ? L("tokens incl. cache reads") : L("tokens"))
-                        .font(Theme.mono(11)).foregroundStyle(Theme.sub)
+                        .font(Theme.sans(11)).foregroundStyle(Theme.sub)
                     Spacer(minLength: 4)
                     if let b = block {
                         Text("≈" + Fmt.cost(b.totals.cost)).font(Theme.mono(11)).foregroundStyle(Theme.sub)
                     }
                 }
                 HStack(spacing: 8) {
-                    AsciiBar(progress: progress)
-                    Text(right).font(Theme.mono(11, .medium)).foregroundStyle(Theme.ink)
+                    AsciiBar(progress: progress, cells: 30)
+                    Text(block == nil ? "—" : Fmt.percent(progress))
+                        .font(Theme.mono(11, .semibold)).foregroundStyle(Theme.ink)
                 }
-                Group {
-                    if let b = block {
-                        Text(">> T-" + Fmt.clock(b.end.timeIntervalSince(now)) + " · " + L("resets %@", b.end.formatted(date: .omitted, time: .shortened)))
-                    } else {
-                        Text(">> " + L("Starts with your next message"))
-                    }
-                }
-                .font(Theme.mono(10))
-                .foregroundStyle(Theme.faint)
                 if let b = block {
                     let f = Forecast(tokens: tokens, block: b, budget: budget, now: now)
-                    Text(">> " + f.text).font(Theme.mono(10)).foregroundStyle(f.warning ? Theme.danger : Theme.sub)
+                    HighlightBar(text: f.text)
+                        .overlay(alignment: .leading) {
+                            if f.warning { Rectangle().fill(Theme.danger).frame(width: 3) }
+                        }
+                    Text("T-" + Fmt.clock(b.end.timeIntervalSince(now)) + "  ·  " + L("resets %@", b.end.formatted(date: .omitted, time: .shortened)))
+                        .font(Theme.mono(10)).foregroundStyle(Theme.faint)
+                } else {
+                    Text(L("Starts with your next message"))
+                        .font(Theme.sans(10)).foregroundStyle(Theme.faint)
                 }
             }
         }
@@ -127,7 +131,7 @@ struct PanelView: View {
     // MARK: Stats
 
     private func stats(_ snap: UsageSnapshot) -> some View {
-        HUDCard(tag: "SYS.STATS", padding: 0) {
+        HUDCard(padding: 0) {
             HStack(spacing: 0) {
                 stat(L("SESSION"), Fmt.compact(snap.session.tokens(includeCacheReads: includeCacheReads)), Fmt.cost(snap.session.cost))
                 divider
@@ -146,7 +150,7 @@ struct PanelView: View {
 
     private func stat(_ label: String, _ value: String, _ caption: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(Theme.label(8)).foregroundStyle(Theme.faint).lineLimit(1)
+            Text(label).font(Theme.label(8)).tracking(0.5).foregroundStyle(Theme.accent).lineLimit(1)
             Text(value).font(Theme.mono(14, .semibold)).foregroundStyle(Theme.ink).lineLimit(1).minimumScaleFactor(0.7)
             Text(caption).font(Theme.mono(9)).foregroundStyle(Theme.sub).lineLimit(1).minimumScaleFactor(0.8)
         }
@@ -154,7 +158,7 @@ struct PanelView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: Projects (accordion)
+    // MARK: Projects (accordion with profiler cards)
 
     private static let maxProjects = 6
 
@@ -165,114 +169,142 @@ struct PanelView: View {
         return HUDCard(title: L("ACTIVE PROJECTS") + " · " + L("LAST 24H"), tag: "NODES:\(snap.projects.count)", padding: 6) {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(shown.enumerated()), id: \.element.id) { i, p in
-                    if i > 0 { dashedRule }
+                    if i > 0 { Rectangle().fill(Theme.line).frame(height: 1).padding(.horizontal, 6) }
                     projectRow(p, isCurrent: current.map { $0 == p.root || $0.hasPrefix(p.root + "/") } ?? false, now: now)
                 }
                 if hidden > 0 {
                     Text(L("+%d more", hidden))
-                        .font(Theme.mono(10)).foregroundStyle(Theme.faint)
+                        .font(Theme.sans(10)).foregroundStyle(Theme.faint)
                         .padding(.horizontal, 6).padding(.top, 6).padding(.bottom, 2)
                 }
             }
         }
     }
 
-    private var dashedRule: some View {
-        Line()
-            .stroke(Theme.line, style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
-            .frame(height: 1)
-            .padding(.horizontal, 6)
+    private func projectState(_ p: ProjectActivity, now: Date) -> (String, Color) {
+        let age = now.timeIntervalSince(p.lastActivity)
+        if p.activities.contains(where: { $0.isRunning(now: now) }) { return (L("RUN"), Theme.live) }
+        if age < 120 { return (L("LIVE"), Theme.live) }
+        if age < 1800 { return (L("ACTIVE"), Theme.accent) }
+        return (Fmt.ago(p.lastActivity, now: now), Theme.faint)
     }
 
     private func projectRow(_ p: ProjectActivity, isCurrent: Bool, now: Date) -> some View {
         let open = store.expanded.contains(p.root)
-        let age = now.timeIntervalSince(p.lastActivity)
-        let running = p.activities.contains { $0.isRunning(now: now) }
-        let state: (String, Color) = running ? (L("RUN"), Theme.live)
-            : age < 120 ? (L("LIVE"), Theme.live)
-            : age < 1800 ? (L("ACTIVE"), Theme.accent)
-            : (Fmt.ago(p.lastActivity, now: now), Theme.faint)
-        var detail = Self.branchText(p.branch)
-        if p.worktrees > 0 { detail += " · " + L(p.worktrees == 1 ? "%d worktree" : "%d worktrees", p.worktrees) }
+        let state = projectState(p, now: now)
 
         return VStack(alignment: .leading, spacing: 0) {
             Button {
                 store.toggleExpanded(p.root)
             } label: {
-                HStack(alignment: .top, spacing: 6) {
-                    Text(open ? "▾" : "▸")
-                        .font(Theme.mono(11)).foregroundStyle(Theme.accent)
-                        .frame(width: 10, alignment: .leading)
+                HStack(alignment: .center, spacing: 8) {
+                    HexMark(color: state.1, filled: isCurrent || state.1 == Theme.live, size: 11)
                     VStack(alignment: .leading, spacing: 1) {
                         HStack(spacing: 6) {
-                            Text((isCurrent ? "> " : "") + p.name)
-                                .font(Theme.mono(12, isCurrent ? .semibold : .regular))
+                            Text(p.name)
+                                .font(Theme.sans(12, isCurrent ? .bold : .medium))
                                 .foregroundStyle(Theme.ink).lineLimit(1).truncationMode(.middle)
                             Text(Self.hexID(p.root))
                                 .font(Theme.mono(8)).foregroundStyle(Theme.faint)
                         }
-                        Text(detail)
+                        Text(Self.branchText(p.branch))
                             .font(Theme.mono(9)).foregroundStyle(Theme.sub).lineLimit(1).truncationMode(.middle)
                     }
                     Spacer(minLength: 6)
                     VStack(alignment: .trailing, spacing: 1) {
                         Text(Fmt.compact(p.totals.tokens(includeCacheReads: includeCacheReads)))
                             .font(Theme.mono(12)).foregroundStyle(Theme.ink)
-                        Text("[" + state.0 + "]")
+                        Text(state.0)
                             .font(Theme.label(8)).foregroundStyle(state.1)
                     }
+                    Text(open ? "▾" : "▸")
+                        .font(Theme.sans(10)).foregroundStyle(Theme.faint)
                 }
-                .padding(.horizontal, 6).padding(.vertical, 6)
-                .background(isCurrent ? Theme.accent.opacity(0.07) : .clear)
+                .padding(.horizontal, 6).padding(.vertical, 7)
+                .background(isCurrent ? Theme.accent.opacity(0.10) : .clear)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .help(p.root)
 
-            if open { activityList(p, now: now) }
+            if open { profiler(p, now: now) }
         }
     }
 
-    private func activityList(_ p: ProjectActivity, now: Date) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            if p.contextLimit > 0 {
-                let used = Double(p.contextTokens) / Double(p.contextLimit)
-                let tint = used >= 0.8 ? Theme.danger : used >= 0.6 ? Theme.amber : Theme.accent
-                HStack(spacing: 6) {
-                    Text(L("context")).foregroundStyle(Theme.faint)
-                    AsciiBar(progress: used, cells: 14, tint: tint, fontSize: 10)
-                    Text(Fmt.percent(used)).foregroundStyle(tint)
-                    Text(Fmt.compact(p.contextTokens) + "/" + Fmt.compact(p.contextLimit)).foregroundStyle(Theme.faint)
+    /// Stacked label bars: blue name bar, white key-fact bar, dark detail bars, then commands.
+    private func profiler(_ p: ProjectActivity, now: Date) -> some View {
+        let latest = p.activities.first
+        let fact: String = {
+            guard let a = latest else { return L("No commands in the last 24 hours") }
+            let line = (a.tool == "$" ? "$ " : a.tool + " ") + (a.detail.isEmpty ? "—" : a.detail)
+            return (a.isRunning(now: now) ? L("Running:") : L("Last:")) + " " + line
+        }()
+        return VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 6) {
+                Text(p.name).font(Theme.sans(11, .bold))
+                Spacer(minLength: 4)
+                Text(Self.hexID(p.root)).font(Theme.mono(9, .semibold))
+            }
+            .foregroundStyle(Theme.barInk)
+            .padding(.horizontal, 6).padding(.vertical, 2)
+            .background(Theme.accent)
+
+            HighlightBar(text: fact)
+
+            detailBar(L("Branch"), Self.branchText(p.branch))
+            detailBar(L("Tokens (24h)"), Fmt.compact(p.totals.tokens(includeCacheReads: includeCacheReads)) + "  ·  ≈" + Fmt.cost(p.totals.cost))
+            if p.worktrees > 0 { detailBar(L("Worktrees"), "\(p.worktrees)") }
+            if p.contextLimit > 0 { contextBar(p) }
+
+            VStack(alignment: .leading, spacing: 3) {
+                ForEach(Array(p.activities.enumerated()), id: \.element.id) { i, a in
+                    let last = i == p.activities.count - 1
+                    let status: (String, Color) = a.isRunning(now: now) ? (L("run"), Theme.live)
+                        : a.status == .failed ? (L("err"), Theme.danger)
+                        : a.status == .running ? (L("stop"), Theme.faint)
+                        : (L("ok"), Theme.faint)
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(last ? "└" : "├").foregroundStyle(Theme.faint)
+                        Text(a.tool).foregroundStyle(Theme.accent)
+                        TypewriterText(text: a.detail.isEmpty ? "—" : a.detail, id: a.id)
+                            .foregroundStyle(a.isRunning(now: now) ? Theme.ink : Theme.sub)
+                            .lineLimit(1).truncationMode(.tail)
+                        Spacer(minLength: 4)
+                        Text(status.0).foregroundStyle(status.1)
+                        Text(Fmt.ago(a.time, now: now)).foregroundStyle(Theme.faint)
+                    }
+                    .font(Theme.mono(10))
+                    .help(a.detail)
                 }
-                .font(Theme.mono(10))
-                .help(used >= 0.8 ? L("Context almost full. Consider /compact.") : L("Context window use of the latest session."))
-                .padding(.bottom, 3)
             }
-            if p.activities.isEmpty {
-                Text("└ " + L("No commands in the last 24 hours"))
-                    .font(Theme.mono(10)).foregroundStyle(Theme.faint)
-            }
-            ForEach(Array(p.activities.enumerated()), id: \.element.id) { i, a in
-                let last = i == p.activities.count - 1
-                let status: (String, Color) = a.isRunning(now: now) ? (L("run"), Theme.live)
-                    : a.status == .failed ? (L("err"), Theme.danger)
-                    : a.status == .running ? (L("stop"), Theme.faint)
-                    : (L("ok"), Theme.faint)
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(last ? "└" : "├").foregroundStyle(Theme.line)
-                    Text(a.tool).foregroundStyle(Theme.accent)
-                    TypewriterText(text: a.detail.isEmpty ? "—" : a.detail, id: a.id)
-                        .foregroundStyle(a.isRunning(now: now) ? Theme.ink : Theme.sub)
-                        .lineLimit(1).truncationMode(.tail)
-                    Spacer(minLength: 4)
-                    Text(status.0).foregroundStyle(status.1)
-                    Text(Fmt.ago(a.time, now: now)).foregroundStyle(Theme.faint)
-                }
-                .font(Theme.mono(10))
-                .help(a.detail)
-            }
+            .padding(.top, 6)
         }
-        .padding(.leading, 22).padding(.trailing, 6).padding(.bottom, 8)
+        .padding(.leading, 24).padding(.trailing, 6).padding(.bottom, 10)
+    }
+
+    private func detailBar(_ label: String, _ value: String) -> some View {
+        HStack(spacing: 6) {
+            Text(label + ":").font(Theme.sans(10)).foregroundStyle(Theme.sub)
+            Text(value).font(Theme.mono(10)).foregroundStyle(Theme.ink).lineLimit(1).truncationMode(.middle)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 6).padding(.vertical, 2)
+        .background(Theme.ink.opacity(0.07))
+    }
+
+    private func contextBar(_ p: ProjectActivity) -> some View {
+        let used = Double(p.contextTokens) / Double(p.contextLimit)
+        let tint = used >= 0.8 ? Theme.danger : used >= 0.6 ? Theme.amber : Theme.accent
+        return HStack(spacing: 6) {
+            Text(L("Context") + ":").font(Theme.sans(10)).foregroundStyle(Theme.sub)
+            AsciiBar(progress: used, cells: 16, tint: tint, fontSize: 10)
+            Text(Fmt.percent(used)).font(Theme.mono(10, .semibold)).foregroundStyle(tint)
+            Text(Fmt.compact(p.contextTokens) + "/" + Fmt.compact(p.contextLimit)).font(Theme.mono(9)).foregroundStyle(Theme.faint)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 6).padding(.vertical, 3)
+        .background(Theme.ink.opacity(0.07))
+        .help(used >= 0.8 ? L("Context almost full. Consider /compact.") : L("Context window use of the latest session."))
     }
 
     /// Short stable hex tag for a project, purely decorative: `#A3F1`.
@@ -291,8 +323,8 @@ struct PanelView: View {
     private func messageBox(title: String, body: String) -> some View {
         HUDCard(title: title, padding: 12) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("> " + body)
-                    .font(Theme.mono(11))
+                Text(body)
+                    .font(Theme.sans(11))
                     .foregroundStyle(Theme.sub)
                     .fixedSize(horizontal: false, vertical: true)
                 AsciiButton(label: L("Open setup")) { WindowManager.shared.showOnboarding() }
@@ -301,12 +333,12 @@ struct PanelView: View {
     }
 
     private func footer(_ snap: UsageSnapshot, now: Date) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                AsciiButton(label: L("refresh")) { Task { await store.refresh() } }
-                AsciiButton(label: L("settings")) { WindowManager.shared.showSettings() }
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 12) {
+                AsciiButton(label: L("Refresh"), key: "R") { Task { await store.refresh() } }
+                AsciiButton(label: L("Settings"), key: "S") { WindowManager.shared.showSettings() }
                 Spacer()
-                AsciiButton(label: L("quit")) { NSApp.terminate(nil) }
+                AsciiButton(label: L("Quit"), key: "Q") { NSApp.terminate(nil) }
             }
             HStack(spacing: 0) {
                 Text(L("powered by") + " ").foregroundStyle(Theme.faint)
@@ -327,30 +359,35 @@ struct PanelView: View {
     }
 }
 
-/// Horizontal line shape (used dashed).
-struct Line: Shape {
-    func path(in rect: CGRect) -> Path {
-        var p = Path()
-        p.move(to: CGPoint(x: rect.minX, y: rect.midY))
-        p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
-        return p
-    }
-}
-
-/// Terminal-style text button: `[ refresh ]`.
+/// Key-hint button: a keycap chip plus a label, e.g. `[R] Refresh`.
+/// Without a key it shows a bordered label.
 struct AsciiButton: View {
     var label: String
+    var key: String? = nil
     var action: () -> Void
     @State private var hover = false
 
     var body: some View {
         Button(action: action) {
-            Text("[ " + label + " ]")
-                .font(Theme.label(10))
-                .foregroundStyle(hover ? Theme.bg : Theme.accent)
-                .padding(.vertical, 2)
-                .background(hover ? Theme.accent : .clear)
-                .contentShape(Rectangle())
+            HStack(spacing: 5) {
+                if let key {
+                    Text(key)
+                        .font(Theme.mono(9, .bold))
+                        .foregroundStyle(Theme.barInk)
+                        .frame(minWidth: 14)
+                        .padding(.vertical, 1)
+                        .background(hover ? Theme.accent : Theme.barFill)
+                }
+                Text(label)
+                    .font(Theme.label(10))
+                    .foregroundStyle(hover ? Theme.accent : Theme.ink)
+                    .padding(.horizontal, key == nil ? 6 : 0)
+                    .padding(.vertical, key == nil ? 2 : 0)
+                    .overlay {
+                        if key == nil { Rectangle().stroke(hover ? Theme.accent : Theme.line, lineWidth: 1) }
+                    }
+            }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .onHover { hover = $0 }

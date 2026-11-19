@@ -1,10 +1,10 @@
 // Renders the app icon (Wolkky on a light tile) to Resources/AppIcon.icns and docs/icon.png.
-// Usage: swift scripts/make-icon.swift   (run scripts/prepare-mascot.swift first)
+// Usage: swift scripts/make-icon.swift   (run scripts/prepare-image.swift first)
 import AppKit
 
 let root = URL(fileURLWithPath: CommandLine.arguments[0]).deletingLastPathComponent().deletingLastPathComponent()
 guard let mascot = NSImage(contentsOf: root.appendingPathComponent("Resources/Wolkky.png")) else {
-    print("Missing Resources/Wolkky.png — run scripts/prepare-mascot.swift first"); exit(1)
+    print("Missing Resources/Wolkky.png — run scripts/prepare-image.swift first"); exit(1)
 }
 let iconset = FileManager.default.temporaryDirectory.appendingPathComponent("AppIcon.iconset")
 try? FileManager.default.removeItem(at: iconset)
